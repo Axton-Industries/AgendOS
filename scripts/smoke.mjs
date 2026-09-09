@@ -61,6 +61,44 @@ check("invalid tx rejected", r.status === 400);
 r = await call("POST", "/api/ai/chat", { message: "hi" });
 check("ai chat responds", r.status === 200 || r.status === 503, `status=${r.status}`);
 
+// notes
+r = await call("POST", "/api/notes", { title: "Ideas", content: "build a life os" });
+const note = r.data?.note;
+check("create note", r.status === 200 && note?.id);
+r = await call("GET", "/api/notes?q=life");
+check("search notes", r.status === 200 && r.data?.notes?.length === 1);
+r = await call("PATCH", `/api/notes/${note.id}`, { content: "build a life os, ship it" });
+check("update note", r.status === 200 && r.data?.note?.content.includes("ship"));
+
+// health
+r = await call("POST", "/api/health", { sleepHours: 7.5, steps: 8000, weightKg: 70 });
+check("log health", r.status === 200 && r.data?.metric?.sleep_hours === 7.5);
+r = await call("POST", "/api/health", { sleepHours: 8 }); // upsert same day
+check("health upsert merges", r.data?.metric?.sleep_hours === 8 && r.data?.metric?.steps === 8000);
+r = await call("GET", "/api/health");
+check("health averages", r.status === 200 && r.data?.averages?.sleep === 8);
+
+// maps
+r = await call("POST", "/api/maps", { query: "Valladolid" });
+check("save place", r.status === 200 && r.data?.place?.name.includes("Valladolid"), r.data?.error ?? "");
+r = await call("GET", "/api/maps/route-info?from=Valladolid&to=Salamanca&mode=car");
+check("route", r.status === 200 && r.data?.route?.distanceKm > 0, r.data?.error ?? `${r.data?.route?.distanceKm}km ${r.data?.route?.durationMin}min`);
+
+// news
+r = await call("GET", "/api/news?category=tech");
+check("news headlines", r.status === 200 && r.data?.articles?.length > 0, `${r.data?.articles?.length ?? 0} articles`);
+
+// notifications / reminders
+r = await call("POST", "/api/reminders", { text: "Call the dentist" }); // due defaults to today
+const rem = r.data?.reminder;
+check("create reminder", r.status === 200 && rem?.id);
+r = await call("GET", "/api/reminders");
+check("notifications derived", r.status === 200 && r.data?.notifications?.some((n) => n.text === "Call the dentist"));
+r = await call("PATCH", `/api/reminders/${rem.id}`);
+check("complete reminder", r.status === 200);
+r = await call("GET", "/api/reminders");
+check("done reminder filtered", !r.data?.notifications?.some((n) => n.text === "Call the dentist"));
+
 // weather (needs outbound network)
 r = await call("GET", "/api/weather");
 check("weather", r.status === 200 && r.data?.current?.temp != null, r.data?.error ?? "");

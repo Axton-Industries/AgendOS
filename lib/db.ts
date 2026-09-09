@@ -61,6 +61,46 @@ for (let attempt = 1; ; attempt++) {
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS notes (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    title TEXT NOT NULL,
+    content TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS health_metrics (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    date TEXT NOT NULL,
+    sleep_hours REAL,
+    steps INTEGER,
+    weight_kg REAL,
+    resting_hr INTEGER,
+    note TEXT DEFAULT '',
+    created_at TEXT NOT NULL,
+    UNIQUE(user_id, date)
+  );
+
+  CREATE TABLE IF NOT EXISTS places (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    lat REAL NOT NULL,
+    lon REAL NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS reminders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    text TEXT NOT NULL,
+    due TEXT NOT NULL,
+    done INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS idx_events_user_start ON events(user_id, start);
   CREATE INDEX IF NOT EXISTS idx_tx_user_date ON transactions(user_id, date);
   CREATE INDEX IF NOT EXISTS idx_ai_user ON ai_messages(user_id, created_at);

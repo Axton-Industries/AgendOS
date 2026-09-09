@@ -6,12 +6,12 @@ export const MODULES = [
   { href: "/calendar", label: "Calendar", icon: "📅" },
   { href: "/weather", label: "Weather", icon: "☁️" },
   { href: "/balance", label: "Balance", icon: "💰" },
+  { href: "/notes", label: "Notes", icon: "📝" },
+  { href: "/health", label: "Health", icon: "❤️" },
+  { href: "/maps", label: "Maps", icon: "🗺️" },
+  { href: "/news", label: "News", icon: "📰" },
+  { href: "/notifications", label: "Notifications", icon: "✉️" },
 ] as const;
 
-export const FUTURE_MODULES = [
-  { label: "Notes", icon: "📝" },
-  { label: "Health", icon: "❤️" },
-  { label: "Maps", icon: "🗺️" },
-  { label: "News", icon: "📰" },
-  { label: "Email", icon: "✉️" },
-] as const;
+export const FUTURE_MODULES: { label: string; icon: string }[] = [];
+

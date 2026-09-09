@@ -3,6 +3,11 @@ import * as calendar from "@/modules/calendar/service";
 import * as weather from "@/modules/weather/service";
 import { getForecast } from "@/modules/weather/service";
 import * as finance from "@/modules/finance/service";
+import * as notes from "@/modules/notes/service";
+import * as health from "@/modules/health/service";
+import * as maps from "@/modules/maps/service";
+import * as news from "@/modules/news/service";
+import * as notifications from "@/modules/notifications/service";
 import { addDays, todayStr } from "@/lib/dates";
 import type { User } from "@/modules/auth/service";
 
@@ -141,6 +146,114 @@ export const toolSchemas: AIToolSchema[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "notes_createNote",
+      description: "Create a note.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          content: { type: "string" },
+        },
+        required: ["title"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "notes_searchNotes",
+      description: "Search the user's notes by keyword. Omit the query to list recent notes.",
+      parameters: {
+        type: "object",
+        properties: { query: { type: "string" } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "health_logMetric",
+      description: "Log health metrics for a day (defaults to today). Only pass the fields the user mentioned.",
+      parameters: {
+        type: "object",
+        properties: {
+          date: { type: "string", description: "Date YYYY-MM-DD, defaults to today" },
+          sleepHours: { type: "number" },
+          steps: { type: "number" },
+          weightKg: { type: "number" },
+          restingHr: { type: "number" },
+          note: { type: "string" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "health_getMetrics",
+      description: "Get recent health metrics and 7-day averages (sleep, steps, weight, resting heart rate).",
+      parameters: {
+        type: "object",
+        properties: { limit: { type: "number" } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "maps_route",
+      description: "Get distance and travel time between two places, and a link to the route on OpenStreetMap.",
+      parameters: {
+        type: "object",
+        properties: {
+          from: { type: "string", description: "Origin place name" },
+          to: { type: "string", description: "Destination place name" },
+          mode: { type: "string", enum: ["car", "bike", "foot"] },
+        },
+        required: ["from", "to"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "news_getHeadlines",
+      description: "Get current news headlines from RSS feeds. Optional category filter: world, tech, sport.",
+      parameters: {
+        type: "object",
+        properties: { category: { type: "string", enum: ["world", "tech", "sport"] } },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "reminders_createReminder",
+      description: "Create a reminder for the user.",
+      parameters: {
+        type: "object",
+        properties: {
+          text: { type: "string" },
+          due: { type: "string", description: "Due date YYYY-MM-DD, defaults to today" },
+        },
+        required: ["text"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "reminders_getReminders",
+      description: "List the user's pending reminders and today's notifications (today's events + due reminders).",
+      parameters: {
+        type: "object",
+        properties: { includeDone: { type: "boolean" } },
+      },
+    },
+  },
 ];
 
 /** Executes a tool call against the shared services, scoped to the user. */
@@ -203,6 +316,29 @@ export async function executeTool(name: string, args: any, userId: string, user:
         });
         return JSON.stringify({ created: t });
       }
+      case "notes_createNote":
+        return JSON.stringify({ created: notes.createNote(userId, args) });
+      case "notes_searchNotes":
+        return JSON.stringify(notes.listNotes(userId, args.query).slice(0, 10));
+      case "health_logMetric":
+        return JSON.stringify({ logged: health.upsertMetrics(userId, args) });
+      case "health_getMetrics":
+        return JSON.stringify({ averages: health.getAverages(userId), metrics: health.listMetrics(userId, args.limit ?? 7) });
+      case "maps_route": {
+        const [a, b] = await Promise.all([weather.geocode(args.from), weather.geocode(args.to)]);
+        if (!a) return JSON.stringify({ error: `Origin '${args.from}' not found` });
+        if (!b) return JSON.stringify({ error: `Destination '${args.to}' not found` });
+        return JSON.stringify(await maps.getRoute({ lat: a.lat, lon: a.lon }, { lat: b.lat, lon: b.lon }, args.mode));
+      }
+      case "news_getHeadlines":
+        return JSON.stringify(await news.getHeadlines(args.category));
+      case "reminders_createReminder":
+        return JSON.stringify({ created: notifications.createReminder(userId, args) });
+      case "reminders_getReminders":
+        return JSON.stringify({
+          reminders: notifications.listReminders(userId, args.includeDone),
+          notifications: notifications.getNotifications(userId),
+        });
       default:
         return JSON.stringify({ error: `Unknown tool '${name}'` });
     }
