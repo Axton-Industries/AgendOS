@@ -1,0 +1,78 @@
+// E2E smoke test against a running server: node scripts/smoke.mjs [base-url]
+const BASE = process.argv[2] ?? "http://localhost:3000";
+let cookie = "";
+let passed = 0, failed = 0;
+
+async function call(method, path, body) {
+  const res = await fetch(BASE + path, {
+    method,
+    headers: { "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+    redirect: "manual",
+  });
+  const setCookie = res.headers.get("set-cookie");
+  if (setCookie?.startsWith("lifeos_session=")) cookie = setCookie.split(";")[0];
+  let data = null;
+  try { data = await res.json(); } catch {}
+  return { status: res.status, data };
+}
+
+function check(name, cond, extra = "") {
+  if (cond) { passed++; console.log(`  ok  ${name} ${extra}`); }
+  else { failed++; console.log(`FAIL  ${name} ${extra}`); }
+}
+
+const email = `smoke_${Date.now()}@lifeos.dev`;
+
+// anonymous requests are rejected
+let r = await call("GET", "/api/calendar");
+check("anon rejected", r.status === 401);
+
+// register
+r = await call("POST", "/api/auth/register", { email, password: "secret123" });
+check("register", r.status === 200 && cookie.length > 0);
+
+// calendar
+r = await call("POST", "/api/calendar", { title: "Dinner", start: "2026-09-11 20:00", end: "2026-09-11 22:00", location: "Madrid", category: "social" });
+const ev = r.data?.event;
+check("create event", r.status === 200 && ev?.title === "Dinner", ev?.id?.slice(0, 8));
+
+r = await call("POST", "/api/calendar", { title: "Bad", start: "2026-09-11 22:00", end: "2026-09-11 20:00" });
+check("invalid event rejected", r.status === 400, r.data?.error ?? "");
+
+r = await call("PATCH", `/api/calendar/${ev.id}`, { title: "Dinner with Ana" });
+check("update event", r.status === 200 && r.data?.event?.title === "Dinner with Ana");
+
+r = await call("GET", "/api/calendar?from=2026-09-11&to=2026-09-12");
+check("list events in range", r.status === 200 && r.data?.events?.length === 1);
+
+// finance
+await call("POST", "/api/finance/transactions", { type: "expense", amount: "45.30", description: "Groceries", category: "Food", date: "2026-09-09" });
+await call("POST", "/api/finance/transactions", { type: "income", amount: "2000", description: "Salary", category: "Work", date: "2026-09-01" });
+r = await call("GET", "/api/finance/summary");
+const s = r.data?.summary;
+check("finance summary", s?.balanceCents === 195470 && s?.monthExpensesCents === 4530 && s?.byCategory?.[0]?.category === "Food",
+  `balance=${s?.balanceCents}`);
+
+r = await call("POST", "/api/finance/transactions", { type: "expense", amount: "abc", date: "2026-09-09" });
+check("invalid tx rejected", r.status === 400);
+
+// AI graceful without key
+r = await call("POST", "/api/ai/chat", { message: "hi" });
+check("ai chat responds", r.status === 200 || r.status === 503, `status=${r.status}`);
+
+// weather (needs outbound network)
+r = await call("GET", "/api/weather");
+check("weather", r.status === 200 && r.data?.current?.temp != null, r.data?.error ?? "");
+
+// cross-module: event weather
+r = await call("GET", `/api/weather/event?eventId=${ev.id}`);
+check("event weather", r.status === 200 && r.data?.weather, JSON.stringify(r.data?.weather ?? r.data?.error ?? {}).slice(0, 120));
+
+// brief page
+const page = await fetch(BASE + "/", { headers: { Cookie: cookie } });
+const html = await page.text();
+check("brief page", page.status === 200 && /Good (morning|afternoon|evening)/.test(html));
+
+console.log(`\n${passed} passed, ${failed} failed`);
+process.exit(failed ? 1 : 0);
