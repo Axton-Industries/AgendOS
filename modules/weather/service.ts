@@ -1,15 +1,5 @@
-import type { Forecast, WeatherProvider } from "./provider";
+import type { Forecast } from "./provider";
 import { openMeteoProvider } from "./providers/openmeteo";
-import { aemetProvider } from "./providers/aemet";
-
-const providers: Record<string, WeatherProvider> = {
-  openmeteo: openMeteoProvider,
-  aemet: aemetProvider,
-};
-
-function getProvider(): WeatherProvider {
-  return providers[process.env.WEATHER_PROVIDER ?? "openmeteo"] ?? openMeteoProvider;
-}
 
 export interface GeoPlace {
   name: string;
@@ -30,7 +20,7 @@ export async function geocode(query: string): Promise<GeoPlace | null> {
 }
 
 export async function getForecast(lat: number, lon: number): Promise<Forecast> {
-  return getProvider().getForecast(lat, lon);
+  return openMeteoProvider.getForecast(lat, lon);
 }
 
 export interface EventWeather {

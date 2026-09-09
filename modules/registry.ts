@@ -13,5 +13,5 @@ export const MODULES = [
   { href: "/notifications", label: "Notifications", icon: "✉️" },
 ] as const;
 
-export const FUTURE_MODULES: { label: string; icon: string }[] = [];
+
 

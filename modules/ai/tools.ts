@@ -267,7 +267,7 @@ export async function executeTool(name: string, args: any, userId: string, user:
       }
       case "calendar_createEvent": {
         const start = args.start;
-        const end = args.end ?? addHours(start, 1);
+        const end = args.end ?? (() => { const [d,t] = start.split(" "); const [y,m,day] = d.split("-").map(Number); const dt = new Date(y, m-1, day, t.split(":").map(Number)[0]+1, t.split(":").map(Number)[1]); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")} ${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}`; })();
         const event = calendar.createEvent(userId, { ...args, start, end });
         return JSON.stringify({ created: event });
       }
@@ -289,7 +289,7 @@ export async function executeTool(name: string, args: any, userId: string, user:
         }
         if (lat == null || lon == null) return JSON.stringify({ error: "No location available" });
         const forecast = await getForecast(lat, lon);
-        return JSON.stringify(compactForecast(forecast, args.date, placeName));
+        return JSON.stringify({ place: placeName, current: forecast.current, daily: args.date ? forecast.daily.filter((d: any) => d.date === args.date) : forecast.daily, ...(args.date ? { hourly: forecast.hourly.filter((h: any) => h.time.startsWith(args.date)) } : {}) });
       }
       case "weather_forEvent": {
         const query = (args.eventTitleQuery ?? "").toLowerCase();
@@ -345,25 +345,4 @@ export async function executeTool(name: string, args: any, userId: string, user:
   } catch (e: any) {
     return JSON.stringify({ error: e.message });
   }
-}
-
-function compactForecast(f: any, date?: string, placeName?: string | null) {
-  const out: any = {
-    place: placeName,
-    current: f.current,
-    daily: date ? f.daily.filter((d: any) => d.date === date) : f.daily,
-  };
-  if (date) {
-    out.hourly = f.hourly.filter((h: any) => h.time.startsWith(date));
-  }
-  return out;
-}
-
-function addHours(dt: string, hours: number) {
-  const [date, time] = dt.split(" ");
-  const [y, mo, d] = date.split("-").map(Number);
-  const [h, mi] = time.split(":").map(Number);
-  const t = new Date(y, mo - 1, d, h + hours, mi);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())} ${pad(t.getHours())}:${pad(t.getMinutes())}`;
 }

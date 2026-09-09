@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/modules/auth/service";
 import { getBriefData, generateBriefSummary } from "@/modules/brief/service";
-import { formatMoney } from "@/lib/format";
+const fmt = (c: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(c / 100);
 import { timeOf, dayName } from "@/lib/dates";
 import { wmoLabel } from "@/modules/weather/provider";
 
@@ -45,10 +45,10 @@ export default async function BriefPage() {
 
         <section className="card">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Balance</h2>
-          <div className="text-3xl font-bold">{formatMoney(data.finance.balanceCents)}</div>
+          <div className="text-3xl font-bold">{fmt(data.finance.balanceCents)}</div>
           <p className="mt-1 text-sm text-zinc-400">
-            <span className="text-emerald-400">+{formatMoney(data.finance.monthIncomeCents)}</span> ·{" "}
-            <span className="text-red-400">-{formatMoney(data.finance.monthExpensesCents)}</span> this month
+            <span className="text-emerald-400">+{fmt(data.finance.monthIncomeCents)}</span> ·{" "}
+            <span className="text-red-400">-{fmt(data.finance.monthExpensesCents)}</span> this month
           </p>
         </section>
       </div>

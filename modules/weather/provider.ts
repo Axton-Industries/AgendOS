@@ -18,11 +18,6 @@ export interface Forecast {
   }[];
 }
 
-export interface WeatherProvider {
-  name: string;
-  getForecast(lat: number, lon: number): Promise<Forecast>;
-}
-
 // WMO weather interpretation codes (shared by Open-Meteo; AEMET needs its own mapping)
 export const WMO_LABELS: Record<number, string> = {
   0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",

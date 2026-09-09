@@ -3,7 +3,7 @@ import { wmoLabel } from "@/modules/weather/provider";
 import { getSummary, type FinanceSummary } from "@/modules/finance/service";
 import { listEvents, type CalendarEvent } from "@/modules/calendar/service";
 import { addDays, friendlyDate, nowDateTimeStr, todayStr } from "@/lib/dates";
-import { formatMoney } from "@/lib/format";
+const fmt = (c: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(c / 100);
 import { isAIConfigured } from "@/modules/ai/service";
 import { openAIProvider } from "@/modules/ai/providers/openai";
 import type { User } from "@/modules/auth/service";
@@ -72,9 +72,9 @@ export async function generateBriefSummary(user: User, data: BriefData): Promise
       : null,
     eventWeather: weatherNotes.filter(Boolean),
     finance: {
-      balance: formatMoney(data.finance.balanceCents),
-      spentThisMonth: formatMoney(data.finance.monthExpensesCents),
-      earnedThisMonth: formatMoney(data.finance.monthIncomeCents),
+      balance: fmt(data.finance.balanceCents),
+      spentThisMonth: fmt(data.finance.monthExpensesCents),
+      earnedThisMonth: fmt(data.finance.monthIncomeCents),
     },
   };
 
@@ -101,6 +101,6 @@ function templateSummary(data: BriefData): string {
   ];
   if (rain != null && rain >= 40) parts.push(`Rain is likely (${rain}%).`);
   else if (data.weather) parts.push(`Currently ${data.weather.current.temp}°C in ${data.place}.`);
-  parts.push(`Spent ${formatMoney(data.finance.monthExpensesCents)} this month.`);
+  parts.push(`Spent ${fmt(data.finance.monthExpensesCents)} this month.`);
   return parts.join(" ");
 }

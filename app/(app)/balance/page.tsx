@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { formatMoney } from "@/lib/format";
+const fmt = (c: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(c / 100);
 import { todayStr } from "@/lib/dates";
 
 type Tx = { id: string; type: "income" | "expense"; amount_cents: number; description: string; category: string; date: string };
@@ -61,15 +61,15 @@ export default function BalancePage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card">
           <p className="text-xs uppercase tracking-wider text-zinc-500">Current balance</p>
-          <p className="mt-1 text-3xl font-bold">{summary ? formatMoney(summary.balanceCents) : "…"}</p>
+          <p className="mt-1 text-3xl font-bold">{summary ? fmt(summary.balanceCents) : "…"}</p>
         </div>
         <div className="card">
           <p className="text-xs uppercase tracking-wider text-zinc-500">Income this month</p>
-          <p className="mt-1 text-3xl font-bold text-emerald-400">{summary ? formatMoney(summary.monthIncomeCents) : "…"}</p>
+          <p className="mt-1 text-3xl font-bold text-emerald-400">{summary ? fmt(summary.monthIncomeCents) : "…"}</p>
         </div>
         <div className="card">
           <p className="text-xs uppercase tracking-wider text-zinc-500">Spent this month</p>
-          <p className="mt-1 text-3xl font-bold text-red-400">{summary ? formatMoney(summary.monthExpensesCents) : "…"}</p>
+          <p className="mt-1 text-3xl font-bold text-red-400">{summary ? fmt(summary.monthExpensesCents) : "…"}</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export default function BalancePage() {
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
                   <div className="h-full rounded-full bg-emerald-600" style={{ width: `${Math.max((cents / maxCat) * 100, 2)}%` }} />
                 </div>
-                <span className="w-20 shrink-0 text-right">{formatMoney(cents)}</span>
+                <span className="w-20 shrink-0 text-right">{fmt(cents)}</span>
               </div>
             ))}
           </div>
@@ -129,7 +129,7 @@ export default function BalancePage() {
                 </span>
                 <span className="text-xs text-zinc-500">{t.date.slice(5)}</span>
                 <span className={`w-20 text-right font-medium ${t.type === "income" ? "text-emerald-400" : "text-zinc-200"}`}>
-                  {t.type === "income" ? "+" : "−"}{formatMoney(t.amount_cents)}
+                  {t.type === "income" ? "+" : "−"}{fmt(t.amount_cents)}
                 </span>
                 <button onClick={() => remove(t.id)} aria-label="Delete"
                   className="text-zinc-600 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100">×</button>

@@ -1,10 +1,9 @@
-import type { Forecast, WeatherProvider } from "../provider";
-import { wmoLabel } from "../provider";
+import type { Forecast } from "../provider";
 
-export const openMeteoProvider: WeatherProvider = {
+export const openMeteoProvider = {
   name: "openmeteo",
 
-  async getForecast(lat, lon): Promise<Forecast> {
+  async getForecast(lat: number, lon: number): Promise<Forecast> {
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&current=temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,relative_humidity_2m` +
@@ -43,5 +42,3 @@ export const openMeteoProvider: WeatherProvider = {
     };
   },
 };
-
-export const currentLabel = wmoLabel;

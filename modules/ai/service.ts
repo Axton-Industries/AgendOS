@@ -1,18 +1,12 @@
 import { db, newId, nowIso } from "@/lib/db";
-import type { AIMessage, AIProvider } from "./provider";
+import type { AIMessage } from "./provider";
 import { openAIProvider } from "./providers/openai";
 import { toolSchemas, executeTool } from "./tools";
 import { friendlyDate, nowDateTimeStr } from "@/lib/dates";
 import type { User } from "@/modules/auth/service";
 
-const providers: Record<string, any> = { openai: openAIProvider };
-
 export function isAIConfigured() {
   return !!process.env.AI_API_KEY;
-}
-
-function getProvider(): AIProvider {
-  return providers[process.env.AI_PROVIDER ?? "openai"] ?? openAIProvider;
 }
 
 const MAX_TOOL_ROUNDS = 6;
@@ -40,7 +34,7 @@ export async function runAssistant(userId: string, userMessage: string, user: Us
 
   saveMessage(userId, "user", userMessage);
 
-  const provider = getProvider();
+  const provider = openAIProvider;
   let reply = "";
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {

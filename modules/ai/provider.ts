@@ -22,8 +22,3 @@ export interface AIToolSchema {
     parameters: Record<string, any>;
   };
 }
-
-export interface AIProvider {
-  name: string;
-  complete(messages: AIMessage[], tools?: AIToolSchema[]): Promise<{ content: string; toolCalls: ToolCall[] }>;
-}

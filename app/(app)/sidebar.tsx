@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MODULES, FUTURE_MODULES } from "@/modules/registry";
+import { MODULES } from "@/modules/registry";
 
 export default function Sidebar({ email }: { email: string }) {
   const pathname = usePathname();
@@ -33,14 +33,6 @@ export default function Sidebar({ email }: { email: string }) {
             </Link>
           );
         })}
-        <div className="my-3 border-t border-zinc-800" />
-        {FUTURE_MODULES.map((m) => (
-          <div key={m.label} className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600">
-            <span className="w-5 text-center">{m.icon}</span>
-            <span className="flex-1">{m.label}</span>
-            <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase tracking-wide">Soon</span>
-          </div>
-        ))}
       </nav>
       <div className="border-t border-zinc-800 px-5 py-4">
         <p className="mb-2 truncate text-xs text-zinc-500">{email}</p>

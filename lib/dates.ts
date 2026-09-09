@@ -1,7 +1,7 @@
 // ponytail: all times are user-local naive strings ("YYYY-MM-DD HH:mm").
 // If server timezone ever differs from the user's, switch to storing UTC + tz.
 
-export function pad(n: number) {
+function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 

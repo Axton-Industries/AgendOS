@@ -1,8 +1,8 @@
-import type { AIProvider, AIMessage, AIToolSchema, ToolCall } from "../provider";
+import type { AIMessage, AIToolSchema, ToolCall } from "../provider";
 
 // OpenAI-compatible provider. Works with OpenAI itself and any compatible
 // endpoint (OpenRouter, Ollama, LM Studio, ...) via AI_BASE_URL.
-export const openAIProvider: AIProvider = {
+export const openAIProvider = {
   name: "openai",
 
   async complete(messages: AIMessage[], tools?: AIToolSchema[]) {
@@ -29,12 +29,8 @@ export const openAIProvider: AIProvider = {
     const toolCalls: ToolCall[] = (msg.tool_calls ?? []).map((tc: any) => ({
       id: tc.id,
       name: tc.function.name,
-      args: safeParse(tc.function.arguments),
+      args: (() => { try { return JSON.parse(tc.function.arguments); } catch { return {}; } })(),
     }));
     return { content: msg.content ?? "", toolCalls };
   },
 };
-
-function safeParse(s: string) {
-  try { return JSON.parse(s); } catch { return {}; }
-}
