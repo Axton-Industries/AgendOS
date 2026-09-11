@@ -3,20 +3,18 @@ import { requireUser, badRequest } from "@/lib/api";
 import { createReminder, getNotifications, listReminders } from "@/modules/notifications/service";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
   return NextResponse.json({
-    reminders: listReminders(auth.user.id, true),
-    notifications: getNotifications(auth.user.id),
+    reminders: listReminders(user.id, true),
+    notifications: getNotifications(user.id),
   });
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
   try {
     const body = await req.json();
-    return NextResponse.json({ reminder: createReminder(auth.user.id, body) });
+    return NextResponse.json({ reminder: createReminder(user.id, body) });
   } catch (e: any) {
     return badRequest(e.message);
   }

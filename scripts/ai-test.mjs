@@ -31,21 +31,17 @@ server.listen(9911, () => console.error("[fake-ai] listening on 9911"));
 // hit the app
 await new Promise((r) => setTimeout(r, 500));
 const BASE = process.argv[2] ?? "http://localhost:3000";
-let cookie = "";
 const call = async (method, path, body) => {
   const res = await fetch(BASE + path, {
-    method, headers: { "Content-Type": "application/json", ...(cookie && { Cookie: cookie }) },
+    method, headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const sc = res.headers.get("set-cookie");
-  if (sc?.startsWith("lifeos_session=")) cookie = sc.split(";")[0];
   return { status: res.status, data: await res.json().catch(() => null) };
 };
 
 let failed = 0;
 const check = (name, cond, extra = "") => { console.log(cond ? `  ok  ${name} ${extra}` : `FAIL  ${name} ${extra}`); if (!cond) failed++; };
 
-await call("POST", "/api/auth/register", { email: `ai_${Date.now()}@lifeos.dev`, password: "secret123" });
 let r = await call("POST", "/api/ai/chat", { message: "Create a meeting tomorrow at 15:00" });
 check("chat: create event via tool", r.status === 200 && r.data?.reply === "Created your meeting.", r.data?.error ?? "");
 

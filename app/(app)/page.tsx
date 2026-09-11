@@ -7,7 +7,7 @@ import { wmoLabel } from "@/modules/weather/provider";
 export const dynamic = "force-dynamic";
 
 export default async function BriefPage() {
-  const user = (await getCurrentUser())!;
+  const user = getCurrentUser();
   const data = await getBriefData(user);
   const summary = await generateBriefSummary(user, data);
   const w = data.weather;

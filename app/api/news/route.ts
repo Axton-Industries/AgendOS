@@ -5,8 +5,7 @@ import { getHeadlines } from "@/modules/news/service";
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
   const category = new URL(req.url).searchParams.get("category") ?? undefined;
   try {
     return NextResponse.json({ articles: await getHeadlines(category) });

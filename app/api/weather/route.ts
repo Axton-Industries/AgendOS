@@ -3,8 +3,7 @@ import { requireUser } from "@/lib/api";
 import { getForecast } from "@/modules/weather/service";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
 
   const { searchParams } = new URL(req.url);
   let lat = parseFloat(searchParams.get("lat") ?? "");
@@ -12,9 +11,9 @@ export async function GET(req: NextRequest) {
   let name = searchParams.get("name") ?? "";
 
   if (Number.isNaN(lat) || Number.isNaN(lon)) {
-    lat = auth.user.lat ?? 40.4168; // default: Madrid
-    lon = auth.user.lon ?? -3.7038;
-    name = auth.user.location_name ?? "Madrid, Spain";
+    lat = user.lat ?? 40.4168; // default: Madrid
+    lon = user.lon ?? -3.7038;
+    name = user.location_name ?? "Madrid, Spain";
   }
 
   try {

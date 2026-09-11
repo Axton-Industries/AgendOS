@@ -4,8 +4,7 @@ import { getRoute } from "@/modules/maps/service";
 import { geocode } from "@/modules/weather/service";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
   const { searchParams } = new URL(req.url);
   const from = searchParams.get("from")?.trim();
   const to = searchParams.get("to")?.trim();

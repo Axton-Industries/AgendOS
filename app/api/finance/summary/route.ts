@@ -3,7 +3,6 @@ import { requireUser } from "@/lib/api";
 import { getSummary } from "@/modules/finance/service";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
-  return NextResponse.json({ summary: getSummary(auth.user.id) });
+  const { user } = requireUser();
+  return NextResponse.json({ summary: getSummary(user.id) });
 }

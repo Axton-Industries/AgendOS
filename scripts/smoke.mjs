@@ -1,17 +1,14 @@
 // E2E smoke test against a running server: node scripts/smoke.mjs [base-url]
 const BASE = process.argv[2] ?? "http://localhost:3000";
-let cookie = "";
 let passed = 0, failed = 0;
 
 async function call(method, path, body) {
   const res = await fetch(BASE + path, {
     method,
-    headers: { "Content-Type": "application/json", ...(cookie ? { Cookie: cookie } : {}) },
+    headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
     redirect: "manual",
   });
-  const setCookie = res.headers.get("set-cookie");
-  if (setCookie?.startsWith("lifeos_session=")) cookie = setCookie.split(";")[0];
   let data = null;
   try { data = await res.json(); } catch {}
   return { status: res.status, data };
@@ -22,18 +19,8 @@ function check(name, cond, extra = "") {
   else { failed++; console.log(`FAIL  ${name} ${extra}`); }
 }
 
-const email = `smoke_${Date.now()}@lifeos.dev`;
-
-// anonymous requests are rejected
-let r = await call("GET", "/api/calendar");
-check("anon rejected", r.status === 401);
-
-// register
-r = await call("POST", "/api/auth/register", { email, password: "secret123" });
-check("register", r.status === 200 && cookie.length > 0);
-
 // calendar
-r = await call("POST", "/api/calendar", { title: "Dinner", start: "2026-09-11 20:00", end: "2026-09-11 22:00", location: "Madrid", category: "social" });
+let r = await call("POST", "/api/calendar", { title: "Dinner", start: "2026-09-11 20:00", end: "2026-09-11 22:00", location: "Madrid", category: "social" });
 const ev = r.data?.event;
 check("create event", r.status === 200 && ev?.title === "Dinner", ev?.id?.slice(0, 8));
 
@@ -108,7 +95,7 @@ r = await call("GET", `/api/weather/event?eventId=${ev.id}`);
 check("event weather", r.status === 200 && r.data?.weather, JSON.stringify(r.data?.weather ?? r.data?.error ?? {}).slice(0, 120));
 
 // brief page
-const page = await fetch(BASE + "/", { headers: { Cookie: cookie } });
+const page = await fetch(BASE + "/");
 const html = await page.text();
 check("brief page", page.status === 200 && /Good (morning|afternoon|evening)/.test(html));
 

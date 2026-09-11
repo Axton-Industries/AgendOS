@@ -2,19 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { MODULES } from "@/modules/registry";
 
-export default function Sidebar({ email }: { email: string }) {
+export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/login");
-    router.refresh();
-  }
 
   const nav = (
     <div className="flex h-full flex-col">
@@ -34,10 +27,6 @@ export default function Sidebar({ email }: { email: string }) {
           );
         })}
       </nav>
-      <div className="border-t border-zinc-800 px-5 py-4">
-        <p className="mb-2 truncate text-xs text-zinc-500">{email}</p>
-        <button onClick={logout} className="text-sm text-zinc-400 hover:text-red-400">Sign out</button>
-      </div>
     </div>
   );
 

@@ -17,17 +17,10 @@ for (let attempt = 1; ; attempt++) {
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
     location_name TEXT,
     lat REAL,
     lon REAL,
     created_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS sessions (
-    token TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id),
-    expires_at TEXT NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS events (

@@ -4,12 +4,11 @@ import { getEvent } from "@/modules/calendar/service";
 import { weatherForEvent } from "@/modules/weather/service";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
   const eventId = new URL(req.url).searchParams.get("eventId");
   if (!eventId) return NextResponse.json({ error: "Missing eventId" }, { status: 400 });
 
-  const event = getEvent(auth.user.id, eventId);
+  const event = getEvent(user.id, eventId);
   if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
   if (!event.location) return NextResponse.json({ weather: null });
 

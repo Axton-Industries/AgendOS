@@ -3,17 +3,15 @@ import { requireUser, badRequest } from "@/lib/api";
 import { getAverages, listMetrics, upsertMetrics } from "@/modules/health/service";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
-  return NextResponse.json({ metrics: listMetrics(auth.user.id), averages: getAverages(auth.user.id) });
+  const { user } = requireUser();
+  return NextResponse.json({ metrics: listMetrics(user.id), averages: getAverages(user.id) });
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireUser(req);
-  if ("error" in auth) return auth.error;
+  const { user } = requireUser();
   try {
     const body = await req.json();
-    const metric = upsertMetrics(auth.user.id, {
+    const metric = upsertMetrics(user.id, {
       date: body.date,
       sleepHours: body.sleepHours != null && body.sleepHours !== "" ? parseFloat(body.sleepHours) : null,
       steps: body.steps != null && body.steps !== "" ? parseInt(body.steps) : null,
