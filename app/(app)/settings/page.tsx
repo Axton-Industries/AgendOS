@@ -21,7 +21,7 @@ export default function SettingsPage() {
   const [active, setActive] = useState<null | (typeof PRESETS)[number]>(null);
   const [testing, setTesting] = useState(false);
   const [test, setTest] = useState<null | { ok: boolean; text: string }>(null);
-  const [models, setModels] = useState<string[]>([]);
+  const [models, setModels] = useState<{ id: string; category: "free" | "paid" | "other" }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
   const [modelError, setModelError] = useState("");
 
@@ -59,6 +59,14 @@ export default function SettingsPage() {
     }
     setLoadingModels(false);
   }
+
+  const choices = [
+    { label: "Free models", cat: "free" as const },
+    { label: "Paid models", cat: "paid" as const },
+    { label: "All models", cat: "other" as const },
+  ]
+    .map((g) => ({ ...g, items: models.filter((m) => m.category === g.cat) }))
+    .filter((g) => g.items.length);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -136,18 +144,24 @@ export default function SettingsPage() {
           <div>
             <label className="label" htmlFor="model">Model</label>
             <div className="flex gap-2">
-              <input id="model" className="input flex-1" list="model-options" value={model}
-                onChange={(e) => setModel(e.target.value)} placeholder="gpt-4o-mini" />
+              <select id="model" className="input flex-1" value={model}
+                disabled={choices.length === 0 && !model}
+                onChange={(e) => setModel(e.target.value)}>
+                {!model && <option value="" disabled>No models loaded — press “Load models”.</option>}
+                {model && !models.some((m) => m.id === model) && <option value={model}>{model}</option>}
+                {choices.map((g) => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.items.map((m) => <option key={m.id} value={m.id}>{m.id}</option>)}
+                  </optgroup>
+                ))}
+              </select>
               <button type="button" className="btn-secondary shrink-0" onClick={loadModels} disabled={loadingModels || !hasApiKey}>
                 {loadingModels ? "Loading…" : models.length ? "Reload" : "Load models"}
               </button>
             </div>
-            <datalist id="model-options">
-              {models.map((m) => <option key={m} value={m} />)}
-            </datalist>
             {modelError && <p className="pt-1 text-xs text-red-400">{modelError}</p>}
             {!modelError && models.length > 0 && (
-              <p className="pt-1 text-xs text-ink-faint">{models.length} models available — pick one from the dropdown.</p>
+              <p className="pt-1 text-xs text-ink-faint">{models.length} models available — grouped by tier.</p>
             )}
           </div>
 

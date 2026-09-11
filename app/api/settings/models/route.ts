@@ -4,6 +4,22 @@ import { getAISettings } from "@/modules/settings/service";
 
 const SKIP = /embedding|whisper|tts|speech|dall-e|image|realtime|audio|rerank|moderation/i;
 
+export interface ModelEntry {
+  id: string;
+  category: "free" | "paid" | "other";
+}
+
+function categorize(m: any): ModelEntry | null {
+  const id = typeof m === "string" ? m : m?.id;
+  if (typeof id !== "string" || !id || SKIP.test(id)) return null;
+  const p = m?.pricing;
+  if (p) {
+    const total = Number(p.prompt ?? 0) + Number(p.completion ?? 0) + Number(p.request ?? 0);
+    return { id, category: total === 0 ? "free" : "paid" };
+  }
+  return { id, category: "other" };
+}
+
 export async function GET() {
   requireUser();
   const { apiKey, baseUrl } = getAISettings();
@@ -22,10 +38,13 @@ export async function GET() {
       );
     }
     const d = await res.json();
-    const models = (d.data ?? [])
-      .map((m: any) => (typeof m === "string" ? m : m.id))
-      .filter((id: string) => typeof id === "string" && id && !SKIP.test(id));
-    return NextResponse.json({ models: [...new Set(models)].sort() });
+    const seen = new Set<string>();
+    const modelEntries = ((d.data ?? []) as any[])
+      .map(categorize)
+      .filter((m: ModelEntry | null): m is ModelEntry => m !== null && !seen.has(m.id) && !!seen.add(m.id));
+    const order = { free: 0, paid: 1, other: 2 };
+    modelEntries.sort((a, b) => order[a.category] - order[b.category] || a.id.localeCompare(b.id));
+    return NextResponse.json({ models: modelEntries });
   } catch (e: any) {
     return NextResponse.json({ error: e.message, models: [] }, { status: 400 });
   }
