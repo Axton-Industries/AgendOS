@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "@/lib/i18n";
 import { wmoLabel } from "@/modules/weather/service";
 
 type Forecast = {
@@ -11,6 +12,7 @@ type Forecast = {
 };
 
 export default function WeatherPage() {
+  const { t } = useTranslations();
   const [data, setData] = useState<Forecast | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -39,7 +41,7 @@ export default function WeatherPage() {
     const res = await fetch(`/api/weather/geocode?name=${encodeURIComponent(query.trim())}`);
     const { place } = await res.json();
     setBusy(false);
-    if (!place) { setError(`No results for "${query}"`); return; }
+    if (!place) { setError(`${t("noResults")} "${query}"`); return; }
     setQuery("");
     await load(`/api/weather?lat=${place.lat}&lon=${place.lon}&name=${encodeURIComponent(place.name + ", " + place.country)}`);
     await fetch("/api/user/location", {
@@ -52,15 +54,15 @@ export default function WeatherPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="page-title">Weather</h1>
+        <h1 className="page-title">{t("weatherPageTitle")}</h1>
         <form onSubmit={search} className="ml-auto flex gap-2">
-          <input className="input w-48" placeholder="Search location…" value={query} onChange={(e) => setQuery(e.target.value)} />
-          <button className="btn-secondary" disabled={busy}>Search</button>
+          <input className="input w-48" placeholder={t("searchLocation")} value={query} onChange={(e) => setQuery(e.target.value)} />
+          <button className="btn-secondary" disabled={busy}>{t("search")}</button>
         </form>
       </div>
 
       {error && <p className="card text-sm text-red-400">{error}</p>}
-      {!data && !error && <p className="card text-sm text-zinc-500">Loading…</p>}
+      {!data && !error && <p className="card text-sm text-zinc-500">{t("loading")}</p>}
 
       {data && (
         <>
@@ -71,15 +73,15 @@ export default function WeatherPage() {
               <span className="text-lg text-zinc-300">{wmoLabel(data.current.code)}</span>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-zinc-400 sm:grid-cols-4">
-              <div>Feels like <b className="text-zinc-200">{Math.round(data.current.feelsLike)}°C</b></div>
-              <div>Rain <b className="text-zinc-200">{data.daily[0]?.precipProb ?? "–"}%</b></div>
-              <div>Wind <b className="text-zinc-200">{data.current.wind != null ? Math.round(data.current.wind) + " km/h" : "–"}</b></div>
-              <div>Humidity <b className="text-zinc-200">{data.current.humidity != null ? Math.round(data.current.humidity) + "%" : "–"}</b></div>
+              <div>{t("feelsLike")} <b className="text-zinc-200">{Math.round(data.current.feelsLike)}°C</b></div>
+              <div>{t("rain")} <b className="text-zinc-200">{data.daily[0]?.precipProb ?? "–"}%</b></div>
+              <div>{t("wind")} <b className="text-zinc-200">{data.current.wind != null ? Math.round(data.current.wind) + " km/h" : "–"}</b></div>
+              <div>{t("humidity")} <b className="text-zinc-200">{data.current.humidity != null ? Math.round(data.current.humidity) + "%" : "–"}</b></div>
             </div>
           </section>
 
           <section className="card">
-            <h2 className="mb-3 section-title">Hourly</h2>
+            <h2 className="mb-3 section-title">{t("hourly")}</h2>
             <div className="flex gap-4 overflow-x-auto pb-1">
               {data.hourly.filter((h) => h.time >= new Date().toISOString().slice(0, 13)).slice(0, 24).map((h) => (
                 <div key={h.time} className="shrink-0 text-center text-xs">
@@ -92,7 +94,7 @@ export default function WeatherPage() {
           </section>
 
           <section className="card">
-            <h2 className="mb-3 section-title">7-day forecast</h2>
+            <h2 className="mb-3 section-title">{t("forecast7day")}</h2>
             <ul className="divide-y divide-zinc-800">
               {data.daily.map((d) => (
                 <li key={d.date} className="flex items-center gap-3 py-2 text-sm">

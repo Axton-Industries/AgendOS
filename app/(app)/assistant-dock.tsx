@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { LangToggle } from "@/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -86,8 +87,8 @@ export default function AssistantDock() {
       <button onClick={() => setOpen((o) => !o)}
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-neon bg-neon text-white transition-transform hover:scale-105"
         style={{ boxShadow: "0 0 24px rgba(0,194,255,0.45)" }}
-        title={open ? "Close assistant" : "Ask the assistant"}
-        aria-label={open ? "Close assistant" : "Ask the assistant"}>
+        title={t("closeAssistant")}
+        aria-label={t("closeAssistant")}>
         {open ? (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -113,7 +114,7 @@ export default function AssistantDock() {
                 <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)" />
                 <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)" />
               </svg>
-              ASSISTANT
+              {t("assistantTitle")}
             </span>
             {listening && <span className="animate-pulse text-[11px] text-neon">● listening</span>}
           </div>
@@ -121,8 +122,7 @@ export default function AssistantDock() {
           <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
             {messages.length === 0 && !busy && (
               <div className="text-xs text-ink-muted">
-                Ask me about your data or anything online. Try: “What’s on my calendar tomorrow?”,
-                “Read me the latest tech news”, or just speak.
+                {t("assistantHint")}
               </div>
             )}
             {messages.map((m, i) => (
@@ -139,7 +139,7 @@ export default function AssistantDock() {
 
           <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex gap-2 border-t border-line p-3">
             {recSupported && (
-              <button type="button" onClick={toggleMic} title="Speak instead of typing"
+              <button type="button" onClick={toggleMic} title={t("speakInstead")}
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded border ${
                   listening ? "border-neon bg-neon text-white" : "border-line-strong bg-panel text-ink-muted hover:text-neon"
                 }`}
@@ -150,7 +150,7 @@ export default function AssistantDock() {
                 </svg>
               </button>
             )}
-            <input className="input flex-1" placeholder="Ask me anything…" value={input}
+            <input className="input flex-1" placeholder={t("askAnything")} value={input}
               onChange={(e) => setInput(e.target.value)} disabled={busy} />
             <button className="btn h-9 px-3" disabled={busy || !input.trim()}>Send</button>
           </form>

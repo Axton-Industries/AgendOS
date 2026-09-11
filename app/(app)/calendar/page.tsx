@@ -5,6 +5,7 @@ import {
   addDays, addMonths, mondayIndex, monthName, monthStart,
   timeOf, todayStr, weekStart, nowDateTimeStr,
 } from "@/lib/dates";
+import { useTranslations } from "@/lib/i18n";
 import { wmoLabel } from "@/modules/weather/service";
 
 type Event = {
@@ -25,6 +26,7 @@ type DayClick = (date: string) => void;
 type EventClick = (e: Event) => void;
 
 export default function CalendarPage() {
+  const { t } = useTranslations();
   const [view, setView] = useState<"month" | "week" | "agenda">("month");
   const [anchor, setAnchor] = useState(todayStr());
   const [events, setEvents] = useState<Event[]>([]);
@@ -87,7 +89,7 @@ export default function CalendarPage() {
   }
 
   async function remove() {
-    if (!editing || !confirm(`Delete "${editing.title}"?`)) return;
+    if (!editing || !confirm(`${t("delete")} "${editing.title}"?`)) return;
     await fetch(`/api/calendar/${editing.id}`, { method: "DELETE" });
     setShowForm(false);
     load();
@@ -111,26 +113,26 @@ export default function CalendarPage() {
 
   const title = view === "month"
     ? `${monthName(+anchor.slice(5, 7))} ${anchor.slice(0, 4)}`
-    : view === "week" ? `Week of ${anchor}` : "Next 30 days";
+    : view === "week" ? `Week of ${anchor}` : `${t("next30Days")}`;
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="page-title">Calendar</h1>
+        <h1 className="page-title">{t("calendar")}</h1>
         <div className="ml-auto flex items-center gap-2">
           <select className="input w-auto" value={view} onChange={(e) => setView(e.target.value as any)}>
-            <option value="month">Month</option>
-            <option value="week">Week</option>
-            <option value="agenda">Agenda</option>
+            <option value="month">{t("month")}</option>
+            <option value="week">{t("week")}</option>
+            <option value="agenda">{t("agenda")}</option>
           </select>
           {view !== "agenda" && (
             <>
-              <button className="btn-secondary" onClick={() => shift(-1)}>←</button>
-              <button className="btn-secondary" onClick={() => setAnchor(todayStr())}>Today</button>
-              <button className="btn-secondary" onClick={() => shift(1)}>→</button>
+              <button className="btn-secondary" onClick={() => shift(-1)}>{t("more")}←</button>
+              <button className="btn-secondary" onClick={() => setAnchor(todayStr())}>{t("today")}</button>
+              <button className="btn-secondary" onClick={() => shift(1)}>{t("more")}→</button>
             </>
           )}
-          <button className="btn" onClick={() => openCreate(todayStr())}>+ Event</button>
+          <button className="btn" onClick={() => openCreate(todayStr())}>{t("add")} Event</button>
         </div>
       </div>
 
@@ -141,40 +143,40 @@ export default function CalendarPage() {
       {showForm && (
         <Modal onClose={() => setShowForm(false)}>
           <form onSubmit={save} className="space-y-3">
-            <h2 className="text-lg font-semibold">{editing ? "Edit event" : "New event"}</h2>
+            <h2 className="text-lg font-semibold">{editing ? t("editEvent") : t("newEvent")}</h2>
             <input className="input" placeholder="Title" required value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })} />
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="label">Date</label>
+                <label className="label">{t("date")}</label>
                 <input className="input" type="date" required value={form.date}
                   onChange={(e) => setForm({ ...form, date: e.target.value })} />
               </div>
               <div>
-                <label className="label">Start</label>
+                <label className="label">{t("start")}</label>
                 <input className="input" type="time" required value={form.start}
                   onChange={(e) => setForm({ ...form, start: e.target.value })} />
               </div>
               <div>
-                <label className="label">End</label>
+                <label className="label">{t("end")}</label>
                 <input className="input" type="time" required value={form.end}
                   onChange={(e) => setForm({ ...form, end: e.target.value })} />
               </div>
             </div>
-            <input className="input" placeholder="Location (optional)" value={form.location}
+            <input className="input" placeholder={t("locationOptional")} value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })} />
-            <textarea className="input" placeholder="Description (optional)" rows={2} value={form.description}
+            <textarea className="input" placeholder={t("descriptionOptional")} rows={2} value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })} />
             <div>
-              <label className="label">Category</label>
+              <label className="label">{t("category")}</label>
               <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                 {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="flex gap-2 pt-2">
-              <button className="btn" disabled={busy}>{editing ? "Save changes" : "Create event"}</button>
+              <button className="btn" disabled={busy}>{editing ? t("saveChanges") : t("createEvent")}</button>
               {editing && (
-                <button type="button" className="btn-secondary !text-red-400" onClick={remove}>Delete</button>
+                <button type="button" className="btn-secondary !text-red-400" onClick={remove}>{t("delete")}</button>
               )}
             </div>
           </form>
@@ -203,7 +205,7 @@ function MonthGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string
   return (
     <div>
       <div className="grid grid-cols-7 gap-px pb-1 text-center text-xs font-medium text-zinc-500">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d}>{d}</div>)}
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d}>{t(d)}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-neon/10">
         {weeks.flat().map((date) => {
@@ -235,7 +237,7 @@ function WeekGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string;
       {days.map((date) => (
         <div key={date} onClick={() => onDayClick(date)}
           className={`min-h-40 cursor-pointer rounded-lg border p-2 hover:bg-neon/5 ${date === today ? "border-neon" : "border-line"} bg-zinc-900`}>
-          <div className="mb-2 text-xs text-zinc-400">{date.slice(8, 10)} {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][mondayIndex(date)]}</div>
+          <div className="mb-2 text-xs text-zinc-400">{date.slice(8, 10)} {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <span key={d}>{t(d)}</span>)[mondayIndex(date)]}</div>
           {(byDay.get(date) ?? []).map((e) => <EventPill key={e.id} e={e} onClick={() => onEventClick(e)} />)}
         </div>
       ))}
@@ -257,7 +259,7 @@ function Agenda({ byDay, range, onEventClick }: { byDay: ByDay; range: [string, 
     }
   }, [byDay]);
 
-  if (days.length === 0) return <p className="card text-sm text-zinc-500">No events in the next 30 days.</p>;
+  if (days.length === 0) return <p className="card text-sm text-zinc-500">{t("noEventsNext30")}</p>;
 
   return (
     <div className="space-y-4">

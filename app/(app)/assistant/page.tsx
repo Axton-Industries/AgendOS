@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 type Msg = { role: "user" | "assistant"; content: string };
 
 export default function AssistantPage() {
+  const { t } = useTranslations();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -45,17 +46,17 @@ export default function AssistantPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-2xl flex-col lg:h-[calc(100vh-4rem)]">
-      <h1 className="page-title py-4">AI Assistant</h1>
+      <h1 className="page-title py-4">{t("assistantPageTitle")}</h1>
 
       <div className="flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 && !busy && (
           <div className="card text-sm text-zinc-400">
-            Ask me anything about your day. Try:
+            {t("assistantPageHint")}
             <ul className="mt-2 space-y-1 text-zinc-500">
-              <li>"What do I have tomorrow?"</li>
-              <li>"Create a meeting tomorrow at 10."</li>
-              <li>"How much did I spend this month?"</li>
-              <li>"Will it rain during my next event?"</li>
+              <li>{t("assistantHint1")}</li>
+              <li>{t("assistantHint2")}</li>
+              <li>{t("assistantHint3")}</li>
+              <li>{t("assistantHint4")}</li>
             </ul>
           </div>
         )}
@@ -74,9 +75,9 @@ export default function AssistantPage() {
       </div>
 
       <form onSubmit={send} className="flex gap-2 py-4">
-        <input className="input" placeholder="Ask your assistant…" value={input}
+        <input className="input" placeholder={t("askAssistantPlaceholder")} value={input}
           onChange={(e) => setInput(e.target.value)} disabled={busy} />
-        <button className="btn" disabled={busy || !input.trim()}>Send</button>
+        <button className="btn" disabled={busy || !input.trim()}>{t("send")}</button>
       </form>
     </div>
   );

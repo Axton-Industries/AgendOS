@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MODULES, type ModuleIcon } from "@/modules/registry";
+import { useTranslations } from "@/lib/i18n";
 
 function Mark() {
   return (
@@ -28,6 +29,7 @@ function NavIcon({ icon, className }: { icon: ModuleIcon; className?: string }) 
 
 function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const { t } = useTranslations();
 
   useEffect(() => {
     try {
@@ -49,7 +51,7 @@ function ThemeToggle() {
   return (
     <button onClick={toggle}
       className="flex h-8 w-8 items-center justify-center rounded border border-line-strong bg-panel text-ink-muted hover:bg-neon/10 hover:text-neon"
-      aria-label="Toggle dark/light mode" title={theme === "dark" ? "Switch to light" : "Switch to dark"}>
+      aria-label={t("toggleTheme")} title={theme === "dark" ? t("switchToLight") : t("switchToDark")}>
       {theme === "dark" ? (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
           strokeLinecap="round" className="h-4 w-4">
@@ -66,51 +68,64 @@ function ThemeToggle() {
   );
 }
 
+function LangToggle() {
+  const { lang, setLang } = useTranslations();
+  return (
+    <button onClick={() => setLang(lang === "en" ? "es" : "en")}
+      className="flex h-8 w-8 items-center justify-center rounded border border-line-strong bg-panel text-xs font-bold text-ink-muted hover:bg-neon/10 hover:text-neon"
+      title={lang === "en" ? "Español" : "English"}>
+      {lang === "en" ? "EN" : "ES"}
+    </button>
+  );
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useTranslations();
 
   const nav = (
     <div className="flex h-full flex-col">
       <div className={`flex items-center gap-3 px-4 py-5 ${collapsed ? "justify-center px-0" : ""}`}>
         <Mark />
-        {!collapsed && <span className="text-sm font-bold tracking-widest text-ink">AGENDOS</span>}
+        {!collapsed && <span className="text-sm font-bold tracking-widest text-ink">{t("agendos")}</span>}
       </div>
       <nav className={`flex-1 space-y-1 ${collapsed ? "flex flex-col items-center px-2" : "px-3"}`}>
         {!collapsed && (
-          <div className="px-3 pb-1 text-[10px] font-medium uppercase tracking-widest text-ink-muted">Modules</div>
+          <div className="px-3 pb-1 text-[10px] font-medium uppercase tracking-widest text-ink-muted">{t("modules")}</div>
         )}
         {MODULES.map((m) => {
           const active = pathname === m.href;
           return (
             <Link key={m.href} href={m.href} onClick={() => setOpen(false)}
-              title={collapsed ? m.label : undefined}
+              title={collapsed ? t(m.tKey as any) : undefined}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 collapsed ? "w-10 justify-center px-0" : ""
               } ${active ? "bg-neon/10 font-medium text-neon-deep" : "text-ink-muted hover:bg-neon/10 hover:text-ink"}`}>
               <NavIcon icon={m.icon} className={`h-[18px] w-[18px] shrink-0 ${active ? "text-neon" : "text-ink-faint"}`} />
-              {!collapsed && <span className="truncate">{m.label}</span>}
+              {!collapsed && <span className="truncate">{t(m.tKey as any)}</span>}
             </Link>
           );
         })}
       </nav>
       <div className={`flex items-center gap-3 px-4 py-4 ${collapsed ? "flex-col" : "justify-between"}`}>
         <div className={`flex items-center gap-3 ${collapsed ? "flex-col" : ""}`}>
-          <Link href="/settings" title="Settings"
+          <Link href="/settings" title={t("settings")}
             className={`flex h-8 w-8 items-center justify-center rounded border border-line-strong bg-panel text-ink-muted hover:bg-neon/10 hover:text-neon ${
               pathname === "/settings" ? "text-neon" : ""
             }`}
-            aria-label="Open settings">
+            aria-label={t("openSettings")}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
               strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
           </Link>
+          <LangToggle />
           <ThemeToggle />
         </div>
-        {!collapsed && <span className="text-[10px] text-ink-faint">v0.1</span>}
+        {!collapsed && <span className="text-[10px] text-ink-faint">{t("version")}</span>}
       </div>
     </div>
   );
@@ -118,9 +133,9 @@ export default function Sidebar() {
   return (
     <>
       <div className="fixed inset-x-0 top-0 z-30 flex items-center gap-3 border-b border-line bg-top px-4 py-3 lg:hidden">
-        <button className="text-xl text-ink" onClick={() => setOpen(true)} aria-label="Open menu">☰</button>
-        <span className="font-bold tracking-widest text-ink">AGENDOS</span>
-        <div className="ml-auto"><ThemeToggle /></div>
+        <button className="text-xl text-ink" onClick={() => setOpen(true)} aria-label={t("openMenu")}>☰</button>
+        <span className="font-bold tracking-widest text-ink">{t("agendos")}</span>
+        <div className="ml-auto"><LangToggle /><ThemeToggle /></div>
       </div>
 
       {open && <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setOpen(false)} />}
@@ -130,8 +145,8 @@ export default function Sidebar() {
         {nav}
         <button onClick={() => setCollapsed((c) => !c)}
           className="absolute -right-4 top-1/2 z-50 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-line-strong bg-top text-ink-muted shadow-sm hover:text-neon lg:flex"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+          title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+          aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}>
           <NavIcon icon={{ paths: collapsed ? ["M9 18l6-6-6-6"] : ["M15 18l-6-6 6-6"] }} className="h-4 w-4" />
         </button>
       </aside>
