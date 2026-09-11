@@ -1,9 +1,11 @@
 {
-  "name": "life-os",
+  "name": "agendos",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "next dev",
+    "dev:app": "electron .",
     "build": "next build",
     "start": "next start"
   },
@@ -17,6 +19,7 @@
     "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "electron": "^42.4.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2"
   }

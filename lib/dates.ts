@@ -5,11 +5,11 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export function toDateStr(d: Date) {
+function toDateStr(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-export function toDateTimeStr(d: Date) {
+function toDateTimeStr(d: Date) {
   return `${toDateStr(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
@@ -30,10 +30,7 @@ export function addDays(dateStr: string, days: number) {
 
 /** Monday-based week start */
 export function weekStart(dateStr: string) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const dt = new Date(y, m - 1, d);
-  const day = (dt.getDay() + 6) % 7;
-  return addDays(dateStr, -day);
+  return addDays(dateStr, -mondayIndex(dateStr));
 }
 
 export function monthStart(dateStr: string) {
@@ -43,10 +40,6 @@ export function monthStart(dateStr: string) {
 export function addMonths(dateStr: string, months: number) {
   const [y, m] = dateStr.split("-").map(Number);
   return toDateStr(new Date(y, m - 1 + months, 1));
-}
-
-export function daysInMonth(year: number, month: number) {
-  return new Date(year, month, 0).getDate();
 }
 
 /** Monday-first weekday index */
@@ -78,4 +71,11 @@ export function timeOf(dt: string) {
 export function friendlyDate(dateStr: string) {
   const [y, m, d] = dateStr.split("-").map(Number);
   return `${dayName(dateStr)}, ${MONTH_NAMES[m - 1]} ${d}, ${y}`;
+}
+
+export function addMinutes(dt: string, minutes: number) {
+  const [d, t] = dt.split(" ");
+  const [y, mo, day, hh, mm] = [...d.split("-"), ...t.split(":")].map(Number);
+  const date = new Date(y, mo - 1, day, hh, mm + minutes);
+  return toDateTimeStr(date);
 }

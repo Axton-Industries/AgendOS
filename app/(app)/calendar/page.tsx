@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  addDays, addMonths, daysInMonth, mondayIndex, monthName, monthStart,
+  addDays, addMonths, mondayIndex, monthName, monthStart,
   timeOf, todayStr, weekStart, nowDateTimeStr,
 } from "@/lib/dates";
-import { wmoLabel } from "@/modules/weather/provider";
+import { wmoLabel } from "@/modules/weather/service";
 
 type Event = {
   id: string; title: string; description: string; location: string;
@@ -116,7 +116,7 @@ export default function CalendarPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">Calendar</h1>
+        <h1 className="page-title">Calendar</h1>
         <div className="ml-auto flex items-center gap-2">
           <select className="input w-auto" value={view} onChange={(e) => setView(e.target.value as any)}>
             <option value="month">Month</option>
@@ -187,7 +187,7 @@ export default function CalendarPage() {
 function EventPill({ e, onClick }: { e: Event; onClick: () => void }) {
   return (
     <button onClick={(ev) => { ev.stopPropagation(); onClick(); }}
-      className="flex w-full items-center gap-1 truncate rounded px-1 py-0.5 text-left text-[11px] hover:bg-zinc-700/50">
+      className="flex w-full items-center gap-1 truncate rounded px-1 py-0.5 text-left text-[11px] hover:bg-neon/10">
       <span className={`h-2 w-2 shrink-0 rounded-full ${CAT_COLOR[e.category] ?? CAT_COLOR.default}`} />
       <span className="truncate">{timeOf(e.start)} {e.title}</span>
     </button>
@@ -205,14 +205,14 @@ function MonthGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string
       <div className="grid grid-cols-7 gap-px pb-1 text-center text-xs font-medium text-zinc-500">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d}>{d}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-zinc-800">
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-neon/10">
         {weeks.flat().map((date) => {
           const dayEvents = byDay.get(date) ?? [];
           const dim = date.slice(0, 7) !== `${y}-${String(m).padStart(2, "0")}`;
           return (
             <div key={date} onClick={() => onDayClick(date)}
-              className={`min-h-24 cursor-pointer bg-zinc-900 p-1 hover:bg-zinc-800/60 ${dim ? "opacity-40" : ""}`}>
-              <div className={`mb-1 text-xs ${date === today ? "flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 font-bold text-white" : "text-zinc-400"}`}>
+              className={`min-h-24 cursor-pointer bg-zinc-900 p-1 hover:bg-neon/5 ${dim ? "opacity-40" : ""}`}>
+              <div className={`mb-1 text-xs ${date === today ? "flex h-5 w-5 items-center justify-center rounded-full bg-neon font-bold text-white" : "text-zinc-400"}`}>
                 {+date.slice(8, 10)}
               </div>
               {dayEvents.slice(0, 3).map((e) => <EventPill key={e.id} e={e} onClick={() => onEventClick(e)} />)}
@@ -234,7 +234,7 @@ function WeekGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string;
     <div className="grid gap-2 sm:grid-cols-7">
       {days.map((date) => (
         <div key={date} onClick={() => onDayClick(date)}
-          className={`min-h-40 cursor-pointer rounded-lg border p-2 hover:bg-zinc-800/40 ${date === today ? "border-emerald-700" : "border-zinc-800"} bg-zinc-900`}>
+          className={`min-h-40 cursor-pointer rounded-lg border p-2 hover:bg-neon/5 ${date === today ? "border-neon" : "border-line"} bg-zinc-900`}>
           <div className="mb-2 text-xs text-zinc-400">{date.slice(8, 10)} {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][mondayIndex(date)]}</div>
           {(byDay.get(date) ?? []).map((e) => <EventPill key={e.id} e={e} onClick={() => onEventClick(e)} />)}
         </div>
@@ -278,7 +278,7 @@ function Agenda({ byDay, range, onEventClick }: { byDay: ByDay; range: [string, 
                       {e.description && <span className="block text-xs text-zinc-600">{e.description}</span>}
                     </span>
                     {w?.available && (
-                      <span className="shrink-0 rounded-lg bg-zinc-800 px-2 py-1 text-right text-xs text-zinc-300">
+                      <span className="shrink-0 rounded-lg bg-neon/10 px-2 py-1 text-right text-xs text-zinc-300">
                         {Math.round(w.temp)}°C · {w.precipProb ?? "?"}% rain
                         <span className="block text-[10px] text-zinc-500">{wmoLabel(w.code)}</span>
                       </span>

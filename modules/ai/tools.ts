@@ -1,4 +1,4 @@
-import type { AIToolSchema } from "./provider";
+import type { AIToolSchema } from "./service";
 import * as calendar from "@/modules/calendar/service";
 import * as weather from "@/modules/weather/service";
 import { getForecast } from "@/modules/weather/service";
@@ -8,7 +8,7 @@ import * as health from "@/modules/health/service";
 import * as maps from "@/modules/maps/service";
 import * as news from "@/modules/news/service";
 import * as notifications from "@/modules/notifications/service";
-import { addDays, todayStr } from "@/lib/dates";
+import { addDays, addMinutes, todayStr } from "@/lib/dates";
 import type { User } from "@/modules/auth/service";
 
 export const toolSchemas: AIToolSchema[] = [
@@ -254,6 +254,30 @@ export const toolSchemas: AIToolSchema[] = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "web_search",
+      description: "Search the internet for current information. Use when the user asks about facts, news, or things not in their personal data.",
+      parameters: {
+        type: "object",
+        properties: { query: { type: "string", description: "Search keywords" } },
+        required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "web_read",
+      description: "Read and summarize the text content of a webpage.",
+      parameters: {
+        type: "object",
+        properties: { url: { type: "string", description: "The full URL to read, e.g. https://..." } },
+        required: ["url"],
+      },
+    },
+  },
 ];
 
 /** Executes a tool call against the shared services, scoped to the user. */
@@ -267,7 +291,7 @@ export async function executeTool(name: string, args: any, userId: string, user:
       }
       case "calendar_createEvent": {
         const start = args.start;
-        const end = args.end ?? (() => { const [d,t] = start.split(" "); const [y,m,day] = d.split("-").map(Number); const dt = new Date(y, m-1, day, t.split(":").map(Number)[0]+1, t.split(":").map(Number)[1]); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")} ${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}`; })();
+        const end = args.end ?? addMinutes(start, 60);
         const event = calendar.createEvent(userId, { ...args, start, end });
         return JSON.stringify({ created: event });
       }
@@ -339,10 +363,67 @@ export async function executeTool(name: string, args: any, userId: string, user:
           reminders: notifications.listReminders(userId, args.includeDone),
           notifications: notifications.getNotifications(userId),
         });
+      case "web_search": {
+        return JSON.stringify({ results: await webSearch(args.query) });
+      }
+      case "web_read": {
+        try {
+          return await webRead(args.url);
+        } catch (e: any) {
+          return JSON.stringify({ error: e.message });
+        }
+      }
       default:
         return JSON.stringify({ error: `Unknown tool '${name}'` });
     }
   } catch (e: any) {
     return JSON.stringify({ error: e.message });
   }
+}
+
+async function fetchText(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: { "User-Agent": "AgendOS/0.1", "Accept-Language": "en" },
+    redirect: "follow",
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.text();
+}
+
+function clean(s: string): string {
+  return s
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#x27;|&apos;/g, "'")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+
+// ponytail: regex-scrapes DuckDuckGo's HTML page since the env has no API key;
+// swap for a search API if they change their markup.
+async function webSearch(query: string, max = 5) {
+  const html = await fetchText(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`);
+  const results: { title: string; url: string; snippet: string }[] = [];
+  const re = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>(?:[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>)?/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) && results.length < max) {
+    const raw = m[1];
+    const uddg = raw.match(/uddg=([^&]+)/);
+    const url = uddg ? decodeURIComponent(uddg[1]) : raw;
+    results.push({ title: clean(m[2]), url, snippet: clean(m[3] ?? "") });
+  }
+  return results;
+}
+
+async function webRead(url: string, maxChars = 6000): Promise<string> {
+  const html = await fetchText(url);
+  const title = clean(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? url);
+  const body = clean(
+    html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<nav[\s\S]*?<\/nav>/gi, " ")
+      .replace(/<header[\s\S]*?<\/header>/gi, " ")
+      .replace(/<footer[\s\S]*?<\/footer>/gi, " ")
+  );
+  return `${title}\n\n${body.slice(0, maxChars)}`;
 }

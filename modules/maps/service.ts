@@ -1,5 +1,6 @@
 import { db, newId, nowIso } from "@/lib/db";
 import { geocode } from "@/modules/weather/service";
+import { cached } from "@/lib/cache";
 
 export interface Place {
   id: string;
@@ -37,7 +38,16 @@ export interface RouteInfo {
 const OSRM_PROFILE: Record<string, string> = { car: "driving", bike: "bike", foot: "foot" };
 
 /** Route between two points via the public OSRM demo server. */
-export async function getRoute(
+export function getRoute(
+  from: { lat: number; lon: number; name?: string },
+  to: { lat: number; lon: number; name?: string },
+  mode = "car"
+): Promise<RouteInfo> {
+  const key = `route:${mode}:${from.lat},${from.lon};${to.lat},${to.lon}`;
+  return cached(key, 6 * 3600, () => getRouteLive(from, to, mode)); // static data, cache 6h
+}
+
+async function getRouteLive(
   from: { lat: number; lon: number; name?: string },
   to: { lat: number; lon: number; name?: string },
   mode = "car"

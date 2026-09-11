@@ -1,11 +1,9 @@
-import { getForecast, weatherForEvent } from "@/modules/weather/service";
-import { wmoLabel } from "@/modules/weather/provider";
+import { getForecast, weatherForEvent, wmoLabel } from "@/modules/weather/service";
 import { getSummary, type FinanceSummary } from "@/modules/finance/service";
 import { listEvents, type CalendarEvent } from "@/modules/calendar/service";
 import { addDays, friendlyDate, nowDateTimeStr, todayStr } from "@/lib/dates";
-const fmt = (c: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(c / 100);
-import { isAIConfigured } from "@/modules/ai/service";
-import { openAIProvider } from "@/modules/ai/providers/openai";
+import { fmtCents } from "@/lib/format";
+import { complete, isAIConfigured } from "@/modules/ai/service";
 import type { User } from "@/modules/auth/service";
 
 export interface BriefData {
@@ -72,14 +70,14 @@ export async function generateBriefSummary(user: User, data: BriefData): Promise
       : null,
     eventWeather: weatherNotes.filter(Boolean),
     finance: {
-      balance: fmt(data.finance.balanceCents),
-      spentThisMonth: fmt(data.finance.monthExpensesCents),
-      earnedThisMonth: fmt(data.finance.monthIncomeCents),
+      balance: fmtCents(data.finance.balanceCents),
+      spentThisMonth: fmtCents(data.finance.monthExpensesCents),
+      earnedThisMonth: fmtCents(data.finance.monthIncomeCents),
     },
   };
 
   try {
-    const { content } = await openAIProvider.complete([
+    const { content } = await complete([
       {
         role: "system",
         content:
@@ -101,6 +99,6 @@ function templateSummary(data: BriefData): string {
   ];
   if (rain != null && rain >= 40) parts.push(`Rain is likely (${rain}%).`);
   else if (data.weather) parts.push(`Currently ${data.weather.current.temp}°C in ${data.place}.`);
-  parts.push(`Spent ${fmt(data.finance.monthExpensesCents)} this month.`);
+  parts.push(`Spent ${fmtCents(data.finance.monthExpensesCents)} this month.`);
   return parts.join(" ");
 }

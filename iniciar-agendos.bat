@@ -1,20 +1,27 @@
 @echo off
-title Life OS - modo desarrollo
+title AgendOS - modo desarrollo
 cd /d "%~dp0"
 
 echo.
-echo   Life OS - modo desarrollo
-echo   Iniciando... (Next.js dev server)
+echo   AgendOS - modo desarrollo
+echo   [1] Abrir como aplicacion (ventana de escritorio)
+echo   [2] Abrir en el navegador web
 echo   Cierra esta ventana para detener la aplicacion.
 echo.
 
-echo   Comprobando puerto 3000...
-for /f "tokens=5" %%P in ('netstat -ano ^| findstr :3000 ^| findstr LISTENING') do (
-    echo   Liberando puerto 3000: terminando proceso %%P
-    taskkill /F /PID %%P >nul 2>&1
-)
-timeout /t 1 /nobreak >nul
+set /p opcion=Selecciona una opcion (1 o 2): 
+echo.
 
+if "%opcion%"=="2" goto web
+
+echo   Iniciando aplicacion de escritorio...
+call npm run dev:app
+goto fin
+
+:web
+echo   Iniciando servidor web...
+start "" http://localhost:3000
 call npm run dev
 
+:fin
 pause

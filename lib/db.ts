@@ -94,6 +94,11 @@ for (let attempt = 1; ; attempt++) {
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS idx_events_user_start ON events(user_id, start);
   CREATE INDEX IF NOT EXISTS idx_tx_user_date ON transactions(user_id, date);
   CREATE INDEX IF NOT EXISTS idx_ai_user ON ai_messages(user_id, created_at);

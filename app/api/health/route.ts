@@ -3,12 +3,12 @@ import { requireUser, badRequest } from "@/lib/api";
 import { getAverages, listMetrics, upsertMetrics } from "@/modules/health/service";
 
 export async function GET(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   return NextResponse.json({ metrics: listMetrics(user.id), averages: getAverages(user.id) });
 }
 
 export async function POST(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   try {
     const body = await req.json();
     const metric = upsertMetrics(user.id, {

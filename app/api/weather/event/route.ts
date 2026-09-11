@@ -4,7 +4,7 @@ import { getEvent } from "@/modules/calendar/service";
 import { weatherForEvent } from "@/modules/weather/service";
 
 export async function GET(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   const eventId = new URL(req.url).searchParams.get("eventId");
   if (!eventId) return NextResponse.json({ error: "Missing eventId" }, { status: 400 });
 

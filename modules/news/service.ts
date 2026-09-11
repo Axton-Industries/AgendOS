@@ -2,6 +2,8 @@
 // ponytail: regex parsing handles standard RSS/Atom-lite feeds; if a source
 // breaks or Atom support is needed, swap in a parser or per-feed adapters.
 
+import { cached } from "@/lib/cache";
+
 export interface Article {
   source: string;
   title: string;
@@ -31,7 +33,7 @@ function tag(block: string, name: string): string | null {
 }
 
 export async function fetchFeed(feed: { name: string; url: string; category: string }): Promise<Article[]> {
-  const res = await fetch(feed.url, { headers: { "User-Agent": "LifeOS/0.1" } });
+  const res = await fetch(feed.url, { headers: { "User-Agent": "AgendOS/0.1" } });
   if (!res.ok) throw new Error(`${feed.name}: feed request failed (${res.status})`);
   const xml = await res.text();
   const items = xml.match(/<(item|entry)[\s\S]*?<\/(item|entry)>/g) ?? [];
@@ -45,6 +47,10 @@ export async function fetchFeed(feed: { name: string; url: string; category: str
 }
 
 export async function getHeadlines(category?: string): Promise<Article[]> {
+  return cached(`news:${category ?? "all"}`, 600, () => getHeadlinesLive(category));
+}
+
+async function getHeadlinesLive(category?: string): Promise<Article[]> {
   const feeds = category ? DEFAULT_FEEDS.filter((f) => f.category === category) : DEFAULT_FEEDS;
   const results = await Promise.allSettled(feeds.map(fetchFeed));
   const articles = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));

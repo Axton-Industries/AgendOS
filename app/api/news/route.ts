@@ -5,10 +5,12 @@ import { getHeadlines } from "@/modules/news/service";
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   const category = new URL(req.url).searchParams.get("category") ?? undefined;
   try {
-    return NextResponse.json({ articles: await getHeadlines(category) });
+    return NextResponse.json({ articles: await getHeadlines(category) }, {
+      headers: { "Cache-Control": "public, max-age=600, stale-while-revalidate=3600" },
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 502 });
   }

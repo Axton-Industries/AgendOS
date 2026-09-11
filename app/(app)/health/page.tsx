@@ -37,7 +37,7 @@ export default function HealthPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <h1 className="text-2xl font-bold">Health</h1>
+      <h1 className="page-title">Health</h1>
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {[
@@ -47,15 +47,15 @@ export default function HealthPage() {
           { label: "Avg resting HR (7d)", value: averages?.resting_hr != null ? `${averages.resting_hr} bpm` : "–" },
         ].map((c) => (
           <div key={c.label} className="card">
-            <p className="text-xs uppercase tracking-wider text-zinc-500">{c.label}</p>
-            <p className="mt-1 text-2xl font-bold">{c.value}</p>
+            <p className="section-title">{c.label}</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight">{c.value}</p>
           </div>
         ))}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Log metrics</h2>
+          <h2 className="mb-3 section-title">Log metrics</h2>
           <form onSubmit={save} className="space-y-3">
             <input className="input" type="date" required value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
             <div className="grid grid-cols-2 gap-2">
@@ -70,7 +70,7 @@ export default function HealthPage() {
         </section>
 
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Recent entries</h2>
+          <h2 className="mb-3 section-title">Recent entries</h2>
           <ul className="divide-y divide-zinc-800 text-sm">
             {metrics.map((m) => (
               <li key={m.date} className="flex items-center gap-3 py-2">

@@ -1,19 +1,77 @@
 import { db, newId, nowIso } from "@/lib/db";
-import type { AIMessage } from "./provider";
-import { openAIProvider } from "./providers/openai";
 import { toolSchemas, executeTool } from "./tools";
 import { friendlyDate, nowDateTimeStr } from "@/lib/dates";
 import type { User } from "@/modules/auth/service";
+import { getAISettings } from "@/modules/settings/service";
+
+export interface ToolCall {
+  id: string;
+  name: string;
+  args: any;
+}
+
+export interface AIMessage {
+  role: "system" | "user" | "assistant" | "tool";
+  content: string;
+  tool_calls?: { id: string; type: "function"; function: { name: string; arguments: string } }[];
+  tool_call_id?: string;
+}
+
+export interface AIToolSchema {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, any>;
+  };
+}
 
 export function isAIConfigured() {
-  return !!process.env.AI_API_KEY;
+  return !!getAISettings().apiKey;
+}
+
+/** OpenAI-compatible chat. Works with OpenAI and any compatible endpoint (OpenRouter, Ollama, LM Studio...). */
+export async function complete(messages: AIMessage[], tools?: AIToolSchema[]): Promise<{ content: string; toolCalls: ToolCall[] }> {
+  const { apiKey, baseUrl, model } = getAISettings();
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      ...(tools?.length ? { tools, tool_choice: "auto" } : {}),
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`AI provider error (${res.status}): ${body.slice(0, 300)}`);
+  }
+  const d = await res.json();
+  const msg = d.choices[0].message;
+  const toolCalls: ToolCall[] = (msg.tool_calls ?? []).map((tc: any) => ({
+    id: tc.id,
+    name: tc.function.name,
+    args: safeParse(tc.function.arguments),
+  }));
+  return { content: msg.content ?? "", toolCalls };
+}
+
+function safeParse(s: string) {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return {};
+  }
 }
 
 const MAX_TOOL_ROUNDS = 6;
 
 function systemPrompt(user: User) {
   const location = user.location_name ? `${user.location_name} (user's saved location)` : "unknown (ask or default to their city)";
-  return `You are the Life OS assistant. You help the user with their calendar, weather and personal finances using the provided tools. Always use tools to read or change real data — never invent events or transactions.
+  return `You are the AgendOS assistant. You help the user with their calendar, weather and personal finances using the provided tools. Always use tools to read or change real data — never invent events or transactions. When asked about anything not in the user's own data, search the internet with web_search (and web_read to dig into a page) before answering.
 
 Today is ${friendlyDate(nowDateTimeStr().slice(0, 10))}. Current time: ${nowDateTimeStr()}.
 User location: ${location}.
@@ -34,11 +92,10 @@ export async function runAssistant(userId: string, userMessage: string, user: Us
 
   saveMessage(userId, "user", userMessage);
 
-  const provider = openAIProvider;
   let reply = "";
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const { content, toolCalls } = await provider.complete(messages, toolSchemas);
+    const { content, toolCalls } = await complete(messages, toolSchemas);
     if (!toolCalls.length) {
       reply = content;
       break;

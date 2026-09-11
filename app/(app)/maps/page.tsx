@@ -56,11 +56,11 @@ export default function MapsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <h1 className="text-2xl font-bold">Maps</h1>
+      <h1 className="page-title">Maps</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Saved places</h2>
+          <h2 className="mb-3 section-title">Saved places</h2>
           <form onSubmit={savePlace} className="mb-3 flex gap-2">
             <input className="input" placeholder="Search a place to save…" value={query} onChange={(e) => setQuery(e.target.value)} />
             <button className="btn-secondary" disabled={busy}>Save</button>
@@ -68,7 +68,7 @@ export default function MapsPage() {
           <ul className="divide-y divide-zinc-800 text-sm">
             {places.map((p) => (
               <li key={p.id} className="group flex items-center gap-2 py-2">
-                <button className="flex-1 text-left hover:text-emerald-400" onClick={() => setSelected(p)}>
+                <button className="flex-1 text-left hover:text-neon" onClick={() => setSelected(p)}>
                   {p.name}
                 </button>
                 <button className="text-zinc-600 opacity-0 hover:text-red-400 group-hover:opacity-100" onClick={() => removePlace(p.id)}>×</button>
@@ -79,7 +79,7 @@ export default function MapsPage() {
         </section>
 
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Directions</h2>
+          <h2 className="mb-3 section-title">Directions</h2>
           <form onSubmit={calcRoute} className="space-y-3">
             <input className="input" placeholder="From (e.g. Valladolid)" required value={routeForm.from} onChange={(e) => setRouteForm({ ...routeForm, from: e.target.value })} />
             <input className="input" placeholder="To (e.g. Salamanca)" required value={routeForm.to} onChange={(e) => setRouteForm({ ...routeForm, to: e.target.value })} />
@@ -91,9 +91,9 @@ export default function MapsPage() {
             <button className="btn" disabled={busy}>Get route</button>
           </form>
           {route && (
-            <div className="mt-4 rounded-lg bg-zinc-800 p-3 text-sm">
+            <div className="mt-4 rounded-lg bg-neon/10 p-3 text-sm">
               <p className="font-semibold">{route.distanceKm} km · {route.durationMin} min by {route.mode}</p>
-              <a className="text-xs text-emerald-400 hover:underline" href={route.mapUrl} target="_blank" rel="noreferrer">Open directions on OpenStreetMap →</a>
+              <a className="text-xs text-neon hover:underline" href={route.mapUrl} target="_blank" rel="noreferrer">Open directions on OpenStreetMap →</a>
             </div>
           )}
         </section>

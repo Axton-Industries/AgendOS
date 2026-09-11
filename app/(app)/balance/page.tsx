@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-const fmt = (c: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR" }).format(c / 100);
+import { fmtCents } from "@/lib/format";
 import { todayStr } from "@/lib/dates";
 
 type Tx = { id: string; type: "income" | "expense"; amount_cents: number; description: string; category: string; date: string };
@@ -56,34 +56,34 @@ export default function BalancePage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <h1 className="text-2xl font-bold">Balance</h1>
+      <h1 className="page-title">Balance</h1>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card">
-          <p className="text-xs uppercase tracking-wider text-zinc-500">Current balance</p>
-          <p className="mt-1 text-3xl font-bold">{summary ? fmt(summary.balanceCents) : "…"}</p>
+          <p className="section-title">Current balance</p>
+          <p className="mt-1 text-3xl font-bold tracking-tight">{summary ? fmtCents(summary.balanceCents) : "…"}</p>
         </div>
         <div className="card">
-          <p className="text-xs uppercase tracking-wider text-zinc-500">Income this month</p>
-          <p className="mt-1 text-3xl font-bold text-emerald-400">{summary ? fmt(summary.monthIncomeCents) : "…"}</p>
+          <p className="section-title">Income this month</p>
+          <p className="mt-1 text-3xl font-bold tracking-tight text-emerald-400">{summary ? fmtCents(summary.monthIncomeCents) : "…"}</p>
         </div>
         <div className="card">
-          <p className="text-xs uppercase tracking-wider text-zinc-500">Spent this month</p>
-          <p className="mt-1 text-3xl font-bold text-red-400">{summary ? fmt(summary.monthExpensesCents) : "…"}</p>
+          <p className="section-title">Spent this month</p>
+          <p className="mt-1 text-3xl font-bold tracking-tight text-red-400">{summary ? fmtCents(summary.monthExpensesCents) : "…"}</p>
         </div>
       </div>
 
       {summary && summary.byCategory.length > 0 && (
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Spending by category (this month)</h2>
+          <h2 className="mb-3 section-title">Spending by category (this month)</h2>
           <div className="space-y-2">
             {summary.byCategory.map(({ category, cents }) => (
               <div key={category} className="flex items-center gap-3 text-sm">
                 <span className="w-32 shrink-0 truncate text-zinc-400">{category}</span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
-                  <div className="h-full rounded-full bg-emerald-600" style={{ width: `${Math.max((cents / maxCat) * 100, 2)}%` }} />
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-neon/10">
+                  <div className="h-full rounded-full bg-neon" style={{ width: `${Math.max((cents / maxCat) * 100, 2)}%` }} />
                 </div>
-                <span className="w-20 shrink-0 text-right">{fmt(cents)}</span>
+                <span className="w-20 shrink-0 text-right">{fmtCents(cents)}</span>
               </div>
             ))}
           </div>
@@ -92,7 +92,7 @@ export default function BalancePage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Add transaction</h2>
+          <h2 className="mb-3 section-title">Add transaction</h2>
           <form onSubmit={add} className="space-y-3">
             <div className="flex gap-2">
               {(["expense", "income"] as const).map((t) => (
@@ -119,7 +119,7 @@ export default function BalancePage() {
         </section>
 
         <section className="card">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Recent transactions</h2>
+          <h2 className="mb-3 section-title">Recent transactions</h2>
           <ul className="divide-y divide-zinc-800">
             {transactions.map((t) => (
               <li key={t.id} className="group flex items-center gap-3 py-2 text-sm">
@@ -129,7 +129,7 @@ export default function BalancePage() {
                 </span>
                 <span className="text-xs text-zinc-500">{t.date.slice(5)}</span>
                 <span className={`w-20 text-right font-medium ${t.type === "income" ? "text-emerald-400" : "text-zinc-200"}`}>
-                  {t.type === "income" ? "+" : "−"}{fmt(t.amount_cents)}
+                  {t.type === "income" ? "+" : "−"}{fmtCents(t.amount_cents)}
                 </span>
                 <button onClick={() => remove(t.id)} aria-label="Delete"
                   className="text-zinc-600 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100">×</button>

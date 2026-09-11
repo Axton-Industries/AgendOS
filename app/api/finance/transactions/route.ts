@@ -3,7 +3,7 @@ import { requireUser, badRequest } from "@/lib/api";
 import { createTransaction, listTransactions } from "@/modules/finance/service";
 
 export async function GET(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   const { searchParams } = new URL(req.url);
   const transactions = listTransactions(user.id, {
     from: searchParams.get("from") ?? undefined,
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   try {
     const body = await req.json();
     const transaction = createTransaction(user.id, {

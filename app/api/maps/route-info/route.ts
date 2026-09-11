@@ -4,7 +4,7 @@ import { getRoute } from "@/modules/maps/service";
 import { geocode } from "@/modules/weather/service";
 
 export async function GET(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   const { searchParams } = new URL(req.url);
   const from = searchParams.get("from")?.trim();
   const to = searchParams.get("to")?.trim();
@@ -19,7 +19,9 @@ export async function GET(req: NextRequest) {
       { lat: b.lat, lon: b.lon, name: b.name },
       mode
     );
-    return NextResponse.json({ route });
+    return NextResponse.json({ route }, {
+      headers: { "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400" },
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 502 });
   }

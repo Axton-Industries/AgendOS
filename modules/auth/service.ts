@@ -20,7 +20,7 @@ export function getCurrentUser(): User {
   let row = db.prepare("SELECT * FROM users WHERE id = ?").get(LOCAL_USER_ID) as any;
   if (!row) {
     db.prepare("INSERT INTO users (id, email, created_at) VALUES (?, ?, ?)").run(
-      LOCAL_USER_ID, "local@lifeos", nowIso()
+      LOCAL_USER_ID, "local@agendos", nowIso()
     );
     row = db.prepare("SELECT * FROM users WHERE id = ?").get(LOCAL_USER_ID) as any;
   }

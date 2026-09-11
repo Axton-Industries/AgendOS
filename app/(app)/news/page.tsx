@@ -36,11 +36,11 @@ export default function NewsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">News</h1>
+        <h1 className="page-title">News</h1>
         <div className="ml-auto flex gap-1">
           {CATEGORIES.map((c) => (
             <button key={c.key} onClick={() => setCategory(c.key)}
-              className={`rounded-lg px-3 py-1.5 text-sm ${category === c.key ? "bg-emerald-600 text-white" : "text-zinc-400 hover:bg-zinc-800"}`}>
+              className={`rounded-lg px-3 py-1.5 text-sm ${category === c.key ? "bg-neon font-bold text-white" : "text-zinc-400 hover:bg-neon/10"}`}>
               {c.label}
             </button>
           ))}
@@ -57,7 +57,7 @@ export default function NewsPage() {
       <ul className="space-y-2">
         {articles.map((a, i) => (
           <li key={i} className="card !p-4">
-            <a href={a.link} target="_blank" rel="noreferrer" className="text-sm font-medium hover:text-emerald-400">
+            <a href={a.link} target="_blank" rel="noreferrer" className="text-sm font-medium hover:text-neon">
               {a.title}
             </a>
             <p className="mt-1 text-xs text-zinc-500">

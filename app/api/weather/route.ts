@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/api";
 import { getForecast } from "@/modules/weather/service";
 
 export async function GET(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
 
   const { searchParams } = new URL(req.url);
   let lat = parseFloat(searchParams.get("lat") ?? "");
@@ -18,7 +18,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const forecast = await getForecast(lat, lon);
-    return NextResponse.json({ place: name, lat, lon, ...forecast });
+    return NextResponse.json({ place: name, lat, lon, ...forecast }, {
+      headers: { "Cache-Control": "public, max-age=600, stale-while-revalidate=3600" },
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 502 });
   }

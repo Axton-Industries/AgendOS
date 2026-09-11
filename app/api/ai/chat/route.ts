@@ -5,7 +5,7 @@ import { isAIConfigured, runAssistant } from "@/modules/ai/service";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
-  const { user } = requireUser();
+  const user = requireUser();
   if (!isAIConfigured()) {
     return NextResponse.json(
       { error: "AI is not configured. Set AI_API_KEY (and optionally AI_BASE_URL / AI_MODEL) in .env.local and restart the server." },

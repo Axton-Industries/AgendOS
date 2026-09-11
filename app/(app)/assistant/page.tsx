@@ -45,7 +45,7 @@ export default function AssistantPage() {
 
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-2xl flex-col lg:h-[calc(100vh-4rem)]">
-      <h1 className="py-4 text-2xl font-bold">AI Assistant</h1>
+      <h1 className="page-title py-4">AI Assistant</h1>
 
       <div className="flex-1 space-y-3 overflow-y-auto pr-1">
         {messages.length === 0 && !busy && (
@@ -62,13 +62,13 @@ export default function AssistantPage() {
         {messages.map((m, i) => (
           <div key={i} className={`max-w-[85%] rounded-xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
             m.role === "user"
-              ? "ml-auto bg-emerald-600 text-white"
-              : "bg-zinc-900 text-zinc-100"
+              ? "ml-auto bg-neon text-white"
+              : "bg-zinc-900 text-ink-soft"
           }`}>
             {m.content}
           </div>
         ))}
-        {busy && <div className="w-24 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm text-zinc-500">thinking…</div>}
+        {busy && <div className="w-24 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm text-ink-faint">thinking…</div>}
         {error && <div className="card text-sm text-red-400">{error}</div>}
         <div ref={bottom} />
       </div>

@@ -5,7 +5,7 @@ import { deleteNote, updateNote } from "@/modules/notes/service";
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const { user } = requireUser();
+  const user = requireUser();
   try {
     const body = await req.json();
     const note = updateNote(user.id, (await params).id, body);
@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 }
 
 export async function DELETE(req: NextRequest, { params }: Ctx) {
-  const { user } = requireUser();
+  const user = requireUser();
   const ok = deleteNote(user.id, (await params).id);
   if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });

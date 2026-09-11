@@ -1,4 +1,4 @@
-# Life OS
+# AgendOS
 
 Personal dashboard: Daily Brief, AI assistant, Calendar, Weather, Balance,
 Notes, Health, Maps, News, and Notifications — the AI talks to the same

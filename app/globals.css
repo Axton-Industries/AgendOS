@@ -1,28 +1,110 @@
 @import "tailwindcss";
 
+/* JARVIS design system — semantic tokens flip between themes. */
+:root {
+  --bg: #04070d;
+  --panel: rgba(8, 16, 28, 0.72);
+  --panel-strong: #0c1524;
+  --top: #080f1a;
+  --line: rgba(0, 200, 255, 0.16);
+  --line-strong: rgba(0, 200, 255, 0.34);
+  --ink: #dcebf4;
+  --ink-soft: #b6cad6;
+  --ink-muted: rgba(220, 235, 244, 0.55);
+  --ink-faint: rgba(220, 235, 244, 0.34);
+  --neon: #00c2ff;
+  --neon-deep: #00a2e0;
+  --overlay: rgba(2, 5, 10, 0.72);
+}
+
+[data-theme="light"] {
+  --bg: #edf3f7;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: #dfe9f0;
+  --top: #ffffff;
+  --line: rgba(0, 150, 200, 0.28);
+  --line-strong: rgba(0, 140, 190, 0.5);
+  --ink: #0f2230;
+  --ink-soft: #37505f;
+  --ink-muted: rgba(15, 34, 48, 0.62);
+  --ink-faint: rgba(15, 34, 48, 0.42);
+  --neon: #0078b8;
+  --neon-deep: #00629c;
+  --overlay: rgba(8, 16, 26, 0.45);
+}
+
+@theme {
+  --font-sans: "Cascadia Mono", Consolas, "Ubuntu Mono", Menlo, monospace;
+  --font-mono: "Cascadia Mono", Consolas, "Ubuntu Mono", Menlo, monospace;
+
+  --color-neon: var(--neon);
+  --color-neon-deep: var(--neon-deep);
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-top: var(--top);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+}
+
 body {
-  @apply bg-zinc-950 text-zinc-100 antialiased;
+  @apply bg-bg font-sans text-ink antialiased;
+  background-image:
+    radial-gradient(60% 40% at 50% -10%, color-mix(in srgb, var(--neon) 12%, transparent), transparent 70%),
+    radial-gradient(50% 40% at 95% 0%, color-mix(in srgb, var(--neon) 7%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, color-mix(in srgb, var(--neon) 8%, transparent), transparent 70%);
+  background-attachment: fixed;
 }
 
 .card {
-  @apply rounded-xl border border-zinc-800 bg-zinc-900 p-5;
+  @apply rounded-lg border border-line bg-panel p-5;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--neon) 5%, transparent),
+    inset 0 1px 0 0 color-mix(in srgb, var(--neon) 8%, transparent);
 }
 
 .input {
-  @apply w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100
-    placeholder:text-zinc-500 focus:border-emerald-500 focus:outline-none;
+  @apply w-full rounded border border-line-strong bg-panel px-3 py-2 text-sm text-ink
+    placeholder:text-ink-faint focus:border-neon focus:outline-none;
 }
 
 .btn {
-  @apply rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500
+  @apply rounded bg-neon px-4 py-2 text-sm font-bold text-white hover:bg-neon-deep
     disabled:cursor-not-allowed disabled:opacity-50;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--neon) 35%, transparent);
 }
 
 .btn-secondary {
-  @apply rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200
-    hover:bg-zinc-700 disabled:opacity-50;
+  @apply rounded border border-line-strong bg-panel px-4 py-2 text-sm font-medium text-ink-soft
+    hover:bg-neon/10 disabled:opacity-50;
 }
 
 .label {
-  @apply mb-1 block text-xs font-medium text-zinc-400;
+  @apply mb-1 block text-xs font-medium uppercase tracking-widest text-ink-muted;
 }
+
+.page-title {
+  @apply text-2xl font-bold tracking-tight text-ink;
+}
+
+.section-title {
+  @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-neon/80;
+}
+
+/* Theme-aware remaps for the legacy zinc palette used across pages. */
+.text-zinc-100,
+.text-zinc-200,
+.text-zinc-900 { color: var(--ink); }
+.text-zinc-300 { color: var(--ink-soft); }
+.text-zinc-400,
+.text-zinc-500 { color: var(--ink-muted); }
+.text-zinc-600 { color: var(--ink-faint); }
+.bg-zinc-800 { background-color: var(--panel-strong); }
+.bg-zinc-900 { background-color: var(--panel); }
+.bg-zinc-950 { background-color: var(--bg); }
+.border-zinc-700 { border-color: var(--line-strong); }
+.border-zinc-800 { border-color: var(--line); }
+.bg-black\/60,
+.bg-black\/70 { background-color: var(--overlay); }

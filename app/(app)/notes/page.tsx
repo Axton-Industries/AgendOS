@@ -38,7 +38,7 @@ export default function NotesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">Notes</h1>
+        <h1 className="page-title">Notes</h1>
         <form className="ml-auto flex gap-2" onSubmit={(e) => { e.preventDefault(); load(query); }}>
           <input className="input w-48" placeholder="Search notes…" value={query}
             onChange={(e) => setQuery(e.target.value)} />
@@ -56,7 +56,7 @@ export default function NotesPage() {
             <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-400">{n.content}</p>
             <div className="mt-3 flex items-center gap-3 text-xs text-zinc-600">
               <span>{n.updated_at.slice(0, 10)}</span>
-              <button className="hover:text-zinc-300" onClick={() => setEditing({ id: n.id, title: n.title, content: n.content })}>Edit</button>
+              <button className="hover:text-ink" onClick={() => setEditing({ id: n.id, title: n.title, content: n.content })}>Edit</button>
               <button className="hover:text-red-400" onClick={() => remove(n.id)}>Delete</button>
             </div>
           </div>
