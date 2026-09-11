@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/api";
 import { getAISettings } from "@/modules/settings/service";
 
@@ -20,22 +20,28 @@ function categorize(m: any): ModelEntry | null {
   return { id, category: "other" };
 }
 
-export async function GET() {
+export async function POST(req: NextRequest) {
   requireUser();
-  const { apiKey, baseUrl } = getAISettings();
+  const saved = getAISettings();
+  const body = await req.json().catch(() => ({}));
+  const apiKey = body?.apiKey || saved.apiKey;
+  const baseUrl = body?.baseUrl || saved.baseUrl;
   if (!apiKey || !baseUrl) {
     return NextResponse.json({ error: "Configure and save a provider first", models: [] }, { status: 400 });
   }
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, "")}/models`, {
+    const res = await fetch(`${String(baseUrl).replace(/\/$/, "")}/models`, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
     if (!res.ok) {
-      const body = await res.text();
-      return NextResponse.json(
-        { error: `Model list failed (${res.status}): ${body.slice(0, 200)}`, models: [] },
-        { status: 400 }
-      );
+      const errBody = await res.text();
+      let msg = errBody.slice(0, 200);
+      try {
+        const e = JSON.parse(errBody)?.error;
+        if (typeof e === "string") msg = e;
+        else if (e?.message) msg = e.message;
+      } catch {}
+      return NextResponse.json({ error: `Model list failed (${res.status}): ${msg}`, models: [] }, { status: 400 });
     }
     const d = await res.json();
     const seen = new Set<string>();

@@ -2,6 +2,7 @@ import { getForecast, weatherForEvent, wmoLabel } from "@/modules/weather/servic
 import { getSummary, type FinanceSummary } from "@/modules/finance/service";
 import { listEvents, type CalendarEvent } from "@/modules/calendar/service";
 import { addDays, friendlyDate, nowDateTimeStr, todayStr } from "@/lib/dates";
+import { db } from "@/lib/db";
 import { fmtCents } from "@/lib/format";
 import { complete, isAIConfigured } from "@/modules/ai/service";
 import type { User } from "@/modules/auth/service";
@@ -43,9 +44,21 @@ export async function getBriefData(user: User): Promise<BriefData> {
   };
 }
 
-/** 2-3 sentence natural-language summary of the day. Falls back to a template without an API key. */
+function briefCacheKey(userId: string) {
+  return `brief:${todayStr()}:${userId}`;
+}
+
+function cachedBrief(userId: string): string | null {
+  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(briefCacheKey(userId)) as any;
+  return row?.value ?? null;
+}
+
+/** 2-3 sentence natural-language summary of the day. AI costs one call per day (cached until midnight); falls back to a template. */
+// ponytail: brief cached until midnight — new events added mid-day won't show until tomorrow; invalidate on event change if it ever matters
 export async function generateBriefSummary(user: User, data: BriefData): Promise<string> {
   if (!isAIConfigured()) return templateSummary(data);
+  const cached = cachedBrief(user.id);
+  if (cached) return cached;
 
   const eventsWithWeather = data.todayEvents.filter((e) => e.location).slice(0, 3);
   const weatherNotes = await Promise.all(
@@ -85,7 +98,11 @@ export async function generateBriefSummary(user: User, data: BriefData): Promise
       },
       { role: "user", content: JSON.stringify(facts) },
     ]);
-    return content || templateSummary(data);
+    const summary = content || templateSummary(data);
+    if (content) {
+      db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run(briefCacheKey(user.id), summary);
+    }
+    return summary;
   } catch {
     return templateSummary(data);
   }

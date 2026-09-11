@@ -6,7 +6,7 @@ const PRESETS = [
   { name: "Ollama (local)", baseUrl: "http://localhost:11434/v1", model: "llama3.2", defaultKey: "ollama", keyUrl: null, note: "Runs on your machine — works instantly, no key needed." },
   { name: "LM Studio (local)", baseUrl: "http://localhost:1234/v1", model: "lmstudio", defaultKey: "lm-studio", keyUrl: null, note: "Runs on your machine — works instantly, no key needed." },
   { name: "Google Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.0-flash", defaultKey: "", keyUrl: "https://aistudio.google.com/apikey", note: "Needs your free key — get one from the link, paste it in the key field." },
-  { name: "Groq", baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile", defaultKey: "", keyUrl: "https://console.groq.com/keys", note: "Needs your free key — get one from the link, paste it in the key field." },
+  { name: "Groq", baseUrl: "https://api.groq.com/openai/v1", model: "openai/gpt-oss-120b", defaultKey: "", keyUrl: "https://console.groq.com/keys", note: "Needs your free key — get one from the link, paste it in the key field." },
   { name: "OpenRouter", baseUrl: "https://openrouter.ai/api/v1", model: "openrouter/free", defaultKey: "", keyUrl: "https://openrouter.ai/keys", note: "Needs your free key — get one from the link, paste it in the key field." },
   { name: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", model: "meta/llama-3.1-8b-instruct", defaultKey: "", keyUrl: "https://build.nvidia.com", note: "Needs your free key — get one from the link, paste it in the key field." },
 ] as const;
@@ -32,7 +32,13 @@ export default function SettingsPage() {
         setBaseUrl(d.ai.baseUrl);
         setModel(d.ai.model);
         setHasApiKey(d.ai.hasApiKey);
-        if (d.ai.hasApiKey) loadModels();
+        if (d.ai.hasApiKey) {
+          fetch("/api/settings/models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ baseUrl: d.ai.baseUrl }),
+          }).then((r) => r.json()).then((d) => { if (d.models) setModels(d.models); });
+        }
       })
       .catch(() => setError("Could not load settings"));
   }, []);
@@ -50,7 +56,11 @@ export default function SettingsPage() {
     setLoadingModels(true);
     setModelError("");
     try {
-      const res = await fetch("/api/settings/models");
+      const res = await fetch("/api/settings/models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseUrl, apiKey }),
+      });
       const d = await res.json();
       if (!res.ok) setModelError(d.error ?? "Could not load models");
       else setModels(d.models);
@@ -90,7 +100,11 @@ export default function SettingsPage() {
     setTest(null);
     setError("");
     try {
-      const res = await fetch("/api/settings/test", { method: "POST" });
+      const res = await fetch("/api/settings/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ai: { baseUrl, model, apiKey } }),
+      });
       const d = await res.json();
       setTest(d.ok ? { ok: true, text: d.reply } : { ok: false, text: d.error });
     } catch (e: any) {
@@ -155,7 +169,7 @@ export default function SettingsPage() {
                   </optgroup>
                 ))}
               </select>
-              <button type="button" className="btn-secondary shrink-0" onClick={loadModels} disabled={loadingModels || !hasApiKey}>
+              <button type="button" className="btn-secondary shrink-0" onClick={loadModels} disabled={loadingModels || !apiKey.trim() && !hasApiKey}>
                 {loadingModels ? "Loading…" : models.length ? "Reload" : "Load models"}
               </button>
             </div>
@@ -182,7 +196,7 @@ export default function SettingsPage() {
 
           <div className="flex gap-2">
             <button className="btn" disabled={!baseUrl.trim() || !model.trim()}>Save configuration</button>
-            <button type="button" className="btn-secondary" onClick={testConnection} disabled={testing || !hasApiKey}>
+            <button type="button" className="btn-secondary" onClick={testConnection} disabled={testing || !apiKey.trim() && !hasApiKey}>
               {testing ? "Testing…" : "Test connection"}
             </button>
           </div>

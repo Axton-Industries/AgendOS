@@ -2,7 +2,7 @@ import { db, newId, nowIso } from "@/lib/db";
 import { toolSchemas, executeTool } from "./tools";
 import { friendlyDate, nowDateTimeStr } from "@/lib/dates";
 import type { User } from "@/modules/auth/service";
-import { getAISettings } from "@/modules/settings/service";
+import { getAISettings, type AISettings } from "@/modules/settings/service";
 
 export interface ToolCall {
   id: string;
@@ -31,8 +31,12 @@ export function isAIConfigured() {
 }
 
 /** OpenAI-compatible chat. Works with OpenAI and any compatible endpoint (OpenRouter, Ollama, LM Studio...). */
-export async function complete(messages: AIMessage[], tools?: AIToolSchema[]): Promise<{ content: string; toolCalls: ToolCall[] }> {
-  const { apiKey, baseUrl, model } = getAISettings();
+export async function complete(
+  messages: AIMessage[],
+  tools?: AIToolSchema[],
+  settings: AISettings = getAISettings()
+): Promise<{ content: string; toolCalls: ToolCall[] }> {
+  const { apiKey, baseUrl, model } = settings;
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
@@ -46,8 +50,7 @@ export async function complete(messages: AIMessage[], tools?: AIToolSchema[]): P
     }),
   });
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`AI provider error (${res.status}): ${body.slice(0, 300)}`);
+    throw new Error(providerError(res.status, await res.text()));
   }
   const d = await res.json();
   const msg = d.choices[0].message;
@@ -65,6 +68,17 @@ function safeParse(s: string) {
   } catch {
     return {};
   }
+}
+
+/** Turns a provider error body into a readable message (OpenRouter/Gemini return JSON with error.message). */
+function providerError(status: number, body: string) {
+  let msg = body;
+  try {
+    const e = JSON.parse(body)?.error;
+    if (typeof e === "string") msg = e;
+    else if (e?.message) msg = e.message;
+  } catch {}
+  return `AI provider error (${status}): ${msg.slice(0, 500)}`;
 }
 
 const MAX_TOOL_ROUNDS = 6;
