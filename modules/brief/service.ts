@@ -17,10 +17,12 @@ export interface BriefData {
   finance: FinanceSummary;
 }
 
-export async function getBriefData(user: User): Promise<BriefData> {
+export async function getBriefData(user: User, lang: "en" | "es" = "en"): Promise<BriefData> {
   const today = todayStr();
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 19 ? "Good afternoon" : "Good evening";
+  const greeting = lang === "es"
+    ? (hour < 12 ? "Buenos días" : hour < 19 ? "Buenas tardes" : "Buenas noches")
+    : (hour < 12 ? "Good morning" : hour < 19 ? "Good afternoon" : "Good evening");
 
   const todayEvents = listEvents(user.id, `${today} 00:00`, `${addDays(today, 1)} 00:00`);
   const upcomingEvents = listEvents(user.id, `${addDays(today, 1)} 00:00`, `${addDays(today, 8)} 00:00`).slice(0, 5);
@@ -35,7 +37,7 @@ export async function getBriefData(user: User): Promise<BriefData> {
 
   return {
     greeting,
-    date: friendlyDate(today),
+    date: friendlyDate(today, lang),
     todayEvents,
     upcomingEvents,
     weather,
@@ -44,20 +46,20 @@ export async function getBriefData(user: User): Promise<BriefData> {
   };
 }
 
-function briefCacheKey(userId: string) {
-  return `brief:${todayStr()}:${userId}`;
+function briefCacheKey(userId: string, lang: "en" | "es" = "en") {
+  return `brief:${todayStr()}:${lang}:${userId}`;
 }
 
-function cachedBrief(userId: string): string | null {
-  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(briefCacheKey(userId)) as any;
+function cachedBrief(userId: string, lang: "en" | "es" = "en"): string | null {
+  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(briefCacheKey(userId, lang)) as any;
   return row?.value ?? null;
 }
 
 /** 2-3 sentence natural-language summary of the day. AI costs one call per day (cached until midnight); falls back to a template. */
 // ponytail: brief cached until midnight — new events added mid-day won't show until tomorrow; invalidate on event change if it ever matters
-export async function generateBriefSummary(user: User, data: BriefData): Promise<string> {
-  if (!isAIConfigured()) return templateSummary(data);
-  const cached = cachedBrief(user.id);
+export async function generateBriefSummary(user: User, data: BriefData, lang: "en" | "es" = "en"): Promise<string> {
+  if (!isAIConfigured()) return templateSummary(data, lang);
+  const cached = cachedBrief(user.id, lang);
   if (cached) return cached;
 
   const eventsWithWeather = data.todayEvents.filter((e) => e.location).slice(0, 3);
@@ -77,7 +79,7 @@ export async function generateBriefSummary(user: User, data: BriefData): Promise
     weather: data.weather
       ? {
           place: data.place,
-          current: `${data.weather.current.temp}°C, ${wmoLabel(data.weather.current.code)}`,
+          current: `${data.weather.current.temp}°C, ${wmoLabel(data.weather.current.code, lang)}`,
           today: data.weather.daily[0],
         }
       : null,
@@ -94,28 +96,32 @@ export async function generateBriefSummary(user: User, data: BriefData): Promise
       {
         role: "system",
         content:
-          "You generate a daily brief. Given the user's data as JSON, write 2-3 short sentences summarizing their day: how busy it is, notable weather (mention rain if likely), and one relevant money note if useful. Be warm but concise. No lists.",
+          lang === "es"
+            ? "Generas un resumen diario. Con los datos del usuario como JSON, escribe 2-3 frases cortas resumiendo su día: cuánto de ocupado está, el tiempo relevante (menciona la lluvia si es probable) y una nota de dinero si es útil. Sé cálido pero conciso. Sin listas."
+            : "You generate a daily brief. Given the user's data as JSON, write 2-3 short sentences summarizing their day: how busy it is, notable weather (mention rain if likely), and one relevant money note if useful. Be warm but concise. No lists.",
       },
       { role: "user", content: JSON.stringify(facts) },
     ]);
-    const summary = content || templateSummary(data);
+    const summary = content || templateSummary(data, lang);
     if (content) {
-      db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run(briefCacheKey(user.id), summary);
+      db.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)").run(briefCacheKey(user.id, lang), summary);
     }
     return summary;
   } catch {
-    return templateSummary(data);
+    return templateSummary(data, lang);
   }
 }
 
-function templateSummary(data: BriefData): string {
+function templateSummary(data: BriefData, lang: "en" | "es" = "en"): string {
   const n = data.todayEvents.length;
   const rain = data.weather?.daily?.[0]?.precipProb ?? null;
   const parts = [
-    n === 0 ? "Your day is clear — no events scheduled." : n === 1 ? `You have one event today: ${data.todayEvents[0].title}.` : `You have ${n} events today.`,
+    lang === "es"
+      ? (n === 0 ? "Tu día está despejado — sin eventos programados." : n === 1 ? `Tienes un evento hoy: ${data.todayEvents[0].title}.` : `Tienes ${n} eventos hoy.`)
+      : (n === 0 ? "Your day is clear — no events scheduled." : n === 1 ? `You have one event today: ${data.todayEvents[0].title}.` : `You have ${n} events today.`),
   ];
-  if (rain != null && rain >= 40) parts.push(`Rain is likely (${rain}%).`);
-  else if (data.weather) parts.push(`Currently ${data.weather.current.temp}°C in ${data.place}.`);
-  parts.push(`Spent ${fmtCents(data.finance.monthExpensesCents)} this month.`);
+  if (rain != null && rain >= 40) parts.push(lang === "es" ? `Es probable que llueva (${rain}%).` : `Rain is likely (${rain}%).`);
+  else if (data.weather) parts.push(lang === "es" ? `Actualmente ${data.weather.current.temp}°C en ${data.place}.` : `Currently ${data.weather.current.temp}°C in ${data.place}.`);
+  parts.push(lang === "es" ? `Has gastado ${fmtCents(data.finance.monthExpensesCents)} este mes.` : `Spent ${fmtCents(data.finance.monthExpensesCents)} this month.`);
   return parts.join(" ");
 }

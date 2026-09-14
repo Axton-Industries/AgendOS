@@ -94,6 +94,17 @@ const translations = {
     noEventsNext30: "No events in the next 30 days.",
     mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun",
     more: "more",
+    moreEvents: "+{n} more",
+    prev: "←",
+    next: "→",
+    percentRain: "{n}% rain",
+
+    // Calendar categories
+    catDefault: "Default",
+    catWork: "Work",
+    catPersonal: "Personal",
+    catHealth: "Health",
+    catSocial: "Social",
 
     // Weather page
     weatherPageTitle: "Weather",
@@ -103,6 +114,7 @@ const translations = {
     humidity: "Humidity",
     hourly: "Hourly",
     forecast7day: "7-day forecast",
+    noResults: "No results for",
 
     // Balance page
     balancePageTitle: "Balance",
@@ -122,6 +134,8 @@ const translations = {
     food: "Food",
     work: "Work",
     noTransactions: "No transactions yet.",
+    incomeFallback: "Income",
+    expenseFallback: "Expense",
 
     // Notes page
     notesPageTitle: "Notes",
@@ -134,6 +148,8 @@ const translations = {
     editNote: "Edit note",
     writeSomething: "Write something…",
     deleteNote: "Delete this note?",
+    saveNote: "Save",
+    addNote: "+ Note",
 
     // Health page
     healthPageTitle: "Health",
@@ -151,6 +167,15 @@ const translations = {
     recentEntries: "Recent entries",
     noEntries: "No entries yet.",
     healthNote: "Manual tracking for now — Garmin / Apple Health / Fitbit / Oura integrations can be added to the health service later.",
+    sleepLabel: "Sleep (h)",
+    stepsLabel: "Steps",
+    weightLabel: "Weight (kg)",
+    restingHRLabel: "Resting HR",
+    hoursAbbrev: "{n} h",
+    kgAbbrev: "{n} kg",
+    bpmAbbrev: "{n} bpm",
+    hoursSuffix: "{n}h",
+    stepsSuffix: "{n} steps",
 
     // Maps page
     mapsPageTitle: "Maps",
@@ -166,6 +191,7 @@ const translations = {
     openDirections: "Open directions on OpenStreetMap →",
     noSavedPlaces: "No saved places yet.",
     selectPlaceHint: "Select a saved place to view it on the map.",
+    routeInfo: "{km} km · {min} min by {mode}",
 
     // News page
     newsPageTitle: "News",
@@ -186,6 +212,7 @@ const translations = {
     showDone: "Show done",
     noReminders: "No reminders.",
     notificationsFooter: "In-app reminders and calendar notifications for now — external email integration (IMAP/Gmail) can be added to this module later.",
+    reminderPlaceholder: "e.g. Call the dentist",
 
     // Settings page
     settingsPageTitle: "Settings",
@@ -199,6 +226,11 @@ const translations = {
     loadModels: "Load models",
     reloadModels: "Reload",
     modelsAvailable: "{n} models available — grouped by tier.",
+    modelsFree: "Free models",
+    modelsPaid: "Paid models",
+    modelsAll: "All models",
+    saveFailed: "Save failed",
+    couldNotLoadModels: "Could not load models",
     apiKey: "API Key",
     apiKeyPlaceholder: "•••••••• (already set, leave blank to keep)",
     apiKeyPlaceholderNew: "sk-…",
@@ -209,6 +241,8 @@ const translations = {
     testConnection: "Test connection",
     testing: "Testing…",
     couldNotLoad: "Could not load settings",
+    presetLocalNote: "Runs on your machine — works instantly, no key needed.",
+    presetKeyNote: "Needs your free key — get one from the link, paste it in the key field.",
 
     // Language
     language: "Idioma",
@@ -305,6 +339,17 @@ const translations = {
     noEventsNext30: "Sin eventos en los próximos 30 días.",
     mon: "Lun", tue: "Mar", wed: "Mié", thu: "Jue", fri: "Vie", sat: "Sáb", sun: "Dom",
     more: "más",
+    moreEvents: "+{n} más",
+    prev: "←",
+    next: "→",
+    percentRain: "{n}% lluvia",
+
+    // Calendar categories
+    catDefault: "Predeterminada",
+    catWork: "Trabajo",
+    catPersonal: "Personal",
+    catHealth: "Salud",
+    catSocial: "Social",
 
     // Weather page
     weatherPageTitle: "Clima",
@@ -314,6 +359,7 @@ const translations = {
     humidity: "Humedad",
     hourly: "Por hora",
     forecast7day: "Pronóstico 7 días",
+    noResults: "Sin resultados para",
 
     // Balance page
     balancePageTitle: "Balance",
@@ -333,6 +379,8 @@ const translations = {
     food: "Comida",
     work: "Trabajo",
     noTransactions: "Sin transacciones aún.",
+    incomeFallback: "Ingreso",
+    expenseFallback: "Gasto",
 
     // Notes page
     notesPageTitle: "Notas",
@@ -345,6 +393,8 @@ const translations = {
     editNote: "Editar nota",
     writeSomething: "Escribe algo…",
     deleteNote: "¿Eliminar esta nota?",
+    saveNote: "Guardar",
+    addNote: "+ Nota",
 
     // Health page
     healthPageTitle: "Salud",
@@ -362,6 +412,15 @@ const translations = {
     recentEntries: "Entradas recientes",
     noEntries: "Sin entradas aún.",
     healthNote: "Seguimiento manual por ahora — se pueden integrar Garmin / Apple Health / Fitbit / Oura más adelante.",
+    sleepLabel: "Sueño (h)",
+    stepsLabel: "Pasos",
+    weightLabel: "Peso (kg)",
+    restingHRLabel: "FC reposo",
+    hoursAbbrev: "{n} h",
+    kgAbbrev: "{n} kg",
+    bpmAbbrev: "{n} bpm",
+    hoursSuffix: "{n}h",
+    stepsSuffix: "{n} pasos",
 
     // Maps page
     mapsPageTitle: "Mapas",
@@ -377,6 +436,7 @@ const translations = {
     openDirections: "Abrir direcciones en OpenStreetMap →",
     noSavedPlaces: "Sin lugares guardados aún.",
     selectPlaceHint: "Selecciona un lugar guardado para verlo en el mapa.",
+    routeInfo: "{km} km · {min} min en {mode}",
 
     // News page
     newsPageTitle: "Noticias",
@@ -397,6 +457,7 @@ const translations = {
     showDone: "Mostrar completados",
     noReminders: "Sin recordatorios.",
     notificationsFooter: "Recordatorios y notificaciones de calendario por ahora — se puede integrar correo externo (IMAP/Gmail) más adelante.",
+    reminderPlaceholder: "ej. Llamar al dentista",
 
     // Settings page
     settingsPageTitle: "Ajustes",
@@ -410,6 +471,11 @@ const translations = {
     loadModels: "Cargar modelos",
     reloadModels: "Recargar",
     modelsAvailable: "{n} modelos disponibles — agrupados por categoría.",
+    modelsFree: "Modelos gratis",
+    modelsPaid: "Modelos de pago",
+    modelsAll: "Todos los modelos",
+    saveFailed: "Error al guardar",
+    couldNotLoadModels: "No se pudieron cargar los modelos",
     apiKey: "Clave API",
     apiKeyPlaceholder: "•••••••• (ya configurada, deja en blanco para mantener)",
     apiKeyPlaceholderNew: "sk-…",
@@ -420,6 +486,8 @@ const translations = {
     testConnection: "Probar conexión",
     testing: "Probando…",
     couldNotLoad: "No se pudieron cargar los ajustes",
+    presetLocalNote: "Se ejecuta en tu máquina — funciona al instante, sin clave.",
+    presetKeyNote: "Necesita tu clave gratuita — consíguela en el enlace y pégala en el campo de clave.",
 
     // Language
     language: "Idioma",
@@ -455,7 +523,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback((key: TranslationKey, params?: Record<string, string | number>) => {
-    let str = translations[lang][key] ?? translations.en[key] ?? key;
+    let str: string = translations[lang][key] ?? translations.en[key] ?? key;
     if (params) {
       for (const [k, v] of Object.entries(params)) {
         str = str.replace(`{${k}}`, String(v));

@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "@/lib/i18n";
 
 const PRESETS = [
-  { name: "Ollama (local)", baseUrl: "http://localhost:11434/v1", model: "llama3.2", defaultKey: "ollama", keyUrl: null, note: "Runs on your machine — works instantly, no key needed." },
-  { name: "LM Studio (local)", baseUrl: "http://localhost:1234/v1", model: "lmstudio", defaultKey: "lm-studio", keyUrl: null, note: "Runs on your machine — works instantly, no key needed." },
-  { name: "Google Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.0-flash", defaultKey: "", keyUrl: "https://aistudio.google.com/apikey", note: "Needs your free key — get one from the link, paste it in the key field." },
-  { name: "Groq", baseUrl: "https://api.groq.com/openai/v1", model: "openai/gpt-oss-120b", defaultKey: "", keyUrl: "https://console.groq.com/keys", note: "Needs your free key — get one from the link, paste it in the key field." },
-  { name: "OpenRouter", baseUrl: "https://openrouter.ai/api/v1", model: "openrouter/free", defaultKey: "", keyUrl: "https://openrouter.ai/keys", note: "Needs your free key — get one from the link, paste it in the key field." },
-  { name: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", model: "meta/llama-3.1-8b-instruct", defaultKey: "", keyUrl: "https://build.nvidia.com", note: "Needs your free key — get one from the link, paste it in the key field." },
+  { name: "Ollama (local)", baseUrl: "http://localhost:11434/v1", model: "llama3.2", defaultKey: "ollama", keyUrl: null, note: "local" as const },
+  { name: "LM Studio (local)", baseUrl: "http://localhost:1234/v1", model: "lmstudio", defaultKey: "lm-studio", keyUrl: null, note: "local" as const },
+  { name: "Google Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.0-flash", defaultKey: "", keyUrl: "https://aistudio.google.com/apikey", note: "key" as const },
+  { name: "Groq", baseUrl: "https://api.groq.com/openai/v1", model: "openai/gpt-oss-120b", defaultKey: "", keyUrl: "https://console.groq.com/keys", note: "key" as const },
+  { name: "OpenRouter", baseUrl: "https://openrouter.ai/api/v1", model: "openrouter/free", defaultKey: "", keyUrl: "https://openrouter.ai/keys", note: "key" as const },
+  { name: "NVIDIA NIM", baseUrl: "https://integrate.api.nvidia.com/v1", model: "meta/llama-3.1-8b-instruct", defaultKey: "", keyUrl: "https://build.nvidia.com", note: "key" as const },
 ] as const;
 
 export default function SettingsPage() {
+  const { t } = useTranslations();
   const [baseUrl, setBaseUrl] = useState("");
   const [model, setModel] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -40,7 +42,7 @@ export default function SettingsPage() {
           }).then((r) => r.json()).then((d) => { if (d.models) setModels(d.models); });
         }
       })
-      .catch(() => setError("Could not load settings"));
+      .catch(() => setError(t("couldNotLoad")));
   }, []);
 
   function pick(p: (typeof PRESETS)[number]) {
@@ -62,7 +64,7 @@ export default function SettingsPage() {
         body: JSON.stringify({ baseUrl, apiKey }),
       });
       const d = await res.json();
-      if (!res.ok) setModelError(d.error ?? "Could not load models");
+      if (!res.ok) setModelError(d.error ?? t("couldNotLoadModels"));
       else setModels(d.models);
     } catch (e: any) {
       setModelError(e.message);
@@ -71,9 +73,9 @@ export default function SettingsPage() {
   }
 
   const choices = [
-    { label: "Free models", cat: "free" as const },
-    { label: "Paid models", cat: "paid" as const },
-    { label: "All models", cat: "other" as const },
+    { label: t("modelsFree"), cat: "free" as const },
+    { label: t("modelsPaid"), cat: "paid" as const },
+    { label: t("modelsAll"), cat: "other" as const },
   ]
     .map((g) => ({ ...g, items: models.filter((m) => m.category === g.cat) }))
     .filter((g) => g.items.length);
@@ -88,7 +90,7 @@ export default function SettingsPage() {
       body: JSON.stringify({ ai: { baseUrl, model, apiKey } }),
     });
     const d = await res.json();
-    if (!res.ok) return setError(d.error ?? "Save failed");
+    if (!res.ok) return setError(d.error ?? t("saveFailed"));
     setHasApiKey(apiKey.trim() !== "" || hasApiKey);
     setApiKey("");
     setSaved(true);
@@ -115,14 +117,14 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="page-title pb-1">Settings</h1>
-      <p className="pb-6 text-sm text-ink-muted">Configure how AgendOS connects to external services.</p>
+      <h1 className="page-title pb-1">{t("settingsPageTitle")}</h1>
+      <p className="pb-6 text-sm text-ink-muted">{t("settingsDescription")}</p>
 
       <div className="card">
-        <h2 className="section-title pb-3">API’s</h2>
+        <h2 className="section-title pb-3">{t("apis")}</h2>
 
         <div className="pb-4">
-          <span className="label">Quick setup</span>
+          <span className="label">{t("quickSetup")}</span>
           <div className="flex flex-wrap gap-2">
             {PRESETS.map((p) => (
               <button key={p.name} type="button"
@@ -138,10 +140,10 @@ export default function SettingsPage() {
           </div>
           {active && (
             <p className="pt-2 text-xs text-ink-faint">
-              {active.note}{" "}
+              {t(active.note === "local" ? "presetLocalNote" : "presetKeyNote")}{" "}
               {active.keyUrl && (
                 <a className="text-neon hover:underline" href={active.keyUrl} target="_blank" rel="noreferrer">
-                  Get a free key →
+                  {t("getKey")}
                 </a>
               )}
             </p>
@@ -150,18 +152,18 @@ export default function SettingsPage() {
 
         <form onSubmit={save} className="space-y-4">
           <div>
-            <label className="label" htmlFor="baseUrl">Base URL</label>
+            <label className="label" htmlFor="baseUrl">{t("baseUrl")}</label>
             <input id="baseUrl" className="input" value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)} placeholder="https://api.openai.com/v1" />
           </div>
 
           <div>
-            <label className="label" htmlFor="model">Model</label>
+            <label className="label" htmlFor="model">{t("model")}</label>
             <div className="flex gap-2">
               <select id="model" className="input flex-1" value={model}
                 disabled={choices.length === 0 && !model}
                 onChange={(e) => setModel(e.target.value)}>
-                {!model && <option value="" disabled>No models loaded — press “Load models”.</option>}
+                {!model && <option value="" disabled>{t("noModelsLoaded")}</option>}
                 {model && !models.some((m) => m.id === model) && <option value={model}>{model}</option>}
                 {choices.map((g) => (
                   <optgroup key={g.label} label={g.label}>
@@ -170,34 +172,34 @@ export default function SettingsPage() {
                 ))}
               </select>
               <button type="button" className="btn-secondary shrink-0" onClick={loadModels} disabled={loadingModels || !apiKey.trim() && !hasApiKey}>
-                {loadingModels ? "Loading…" : models.length ? "Reload" : "Load models"}
+                {loadingModels ? t("loading") : models.length ? t("reloadModels") : t("loadModels")}
               </button>
             </div>
             {modelError && <p className="pt-1 text-xs text-red-400">{modelError}</p>}
             {!modelError && models.length > 0 && (
-              <p className="pt-1 text-xs text-ink-faint">{models.length} models available — grouped by tier.</p>
+              <p className="pt-1 text-xs text-ink-faint">{t("modelsAvailable", { n: models.length })}</p>
             )}
           </div>
 
           <div>
-            <label className="label" htmlFor="apiKey">API Key</label>
+            <label className="label" htmlFor="apiKey">{t("apiKey")}</label>
             <input id="apiKey" className="input" type="password" value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder={hasApiKey ? "•••••••• (already set, leave blank to keep)" : "sk-…"} />
+              placeholder={hasApiKey ? t("apiKeyPlaceholder") : t("apiKeyPlaceholderNew")} />
           </div>
 
           {error && <div className="text-sm text-red-400">{error}</div>}
-          {saved && <div className="text-sm text-emerald-400">Saved.</div>}
+          {saved && <div className="text-sm text-emerald-400">{t("savedMsg")}</div>}
           {test && (
             <div className={`text-sm ${test.ok ? "text-emerald-400" : "text-red-400"}`}>
-              Test: {test.ok ? `connected — model replied "${test.text}"` : test.text}
+              {test.ok ? t("connected") + ` "${test.text}"` : test.text}
             </div>
           )}
 
           <div className="flex gap-2">
-            <button className="btn" disabled={!baseUrl.trim() || !model.trim()}>Save configuration</button>
+            <button className="btn" disabled={!baseUrl.trim() || !model.trim()}>{t("saveConfig")}</button>
             <button type="button" className="btn-secondary" onClick={testConnection} disabled={testing || !apiKey.trim() && !hasApiKey}>
-              {testing ? "Testing…" : "Test connection"}
+              {testing ? t("testing") : t("testConnection")}
             </button>
           </div>
         </form>

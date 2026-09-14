@@ -1,17 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations, type TranslationKey } from "@/lib/i18n";
 
 type Article = { source: string; category: string; title: string; link: string; published: string | null };
 
 const CATEGORIES = [
-  { key: "", label: "All" },
-  { key: "world", label: "World" },
-  { key: "tech", label: "Tech" },
-  { key: "sport", label: "Sport" },
+  { key: "", label: "all" },
+  { key: "world", label: "world" },
+  { key: "tech", label: "tech" },
+  { key: "sport", label: "sport" },
 ];
 
 export default function NewsPage() {
+  const { t } = useTranslations();
   const [articles, setArticles] = useState<Article[]>([]);
   const [category, setCategory] = useState("");
   const [busy, setBusy] = useState(true);
@@ -36,22 +38,22 @@ export default function NewsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="page-title">News</h1>
+        <h1 className="page-title">{t("newsPageTitle")}</h1>
         <div className="ml-auto flex gap-1">
           {CATEGORIES.map((c) => (
             <button key={c.key} onClick={() => setCategory(c.key)}
               className={`rounded-lg px-3 py-1.5 text-sm ${category === c.key ? "bg-neon font-bold text-white" : "text-zinc-400 hover:bg-neon/10"}`}>
-              {c.label}
+              {t(c.label as TranslationKey)}
             </button>
           ))}
         </div>
       </div>
 
       {error && <p className="card text-sm text-red-400">{error}</p>}
-      {busy && <p className="card text-sm text-zinc-500">Loading feeds…</p>}
+      {busy && <p className="card text-sm text-zinc-500">{t("loadingFeeds")}</p>}
 
       {!busy && articles.length === 0 && !error && (
-        <p className="card text-sm text-zinc-500">No headlines available right now.</p>
+        <p className="card text-sm text-zinc-500">{t("noHeadlines")}</p>
       )}
 
       <ul className="space-y-2">
@@ -68,7 +70,7 @@ export default function NewsPage() {
         ))}
       </ul>
 
-      <p className="text-xs text-zinc-600">Headlines from BBC and The Guardian RSS feeds. Ask the AI to summarize them.</p>
+      <p className="text-xs text-zinc-600">{t("newsFooter")}</p>
     </div>
   );
 }

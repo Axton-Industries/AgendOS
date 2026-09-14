@@ -5,7 +5,7 @@ import {
   addDays, addMonths, mondayIndex, monthName, monthStart,
   timeOf, todayStr, weekStart, nowDateTimeStr,
 } from "@/lib/dates";
-import { useTranslations } from "@/lib/i18n";
+import { useTranslations, type TranslationKey } from "@/lib/i18n";
 import { wmoLabel } from "@/modules/weather/service";
 
 type Event = {
@@ -26,7 +26,7 @@ type DayClick = (date: string) => void;
 type EventClick = (e: Event) => void;
 
 export default function CalendarPage() {
-  const { t } = useTranslations();
+  const { t, lang } = useTranslations();
   const [view, setView] = useState<"month" | "week" | "agenda">("month");
   const [anchor, setAnchor] = useState(todayStr());
   const [events, setEvents] = useState<Event[]>([]);
@@ -112,8 +112,8 @@ export default function CalendarPage() {
   };
 
   const title = view === "month"
-    ? `${monthName(+anchor.slice(5, 7))} ${anchor.slice(0, 4)}`
-    : view === "week" ? `Week of ${anchor}` : `${t("next30Days")}`;
+    ? `${monthName(+anchor.slice(5, 7), lang)} ${anchor.slice(0, 4)}`
+    : view === "week" ? `${t("weekOf")} ${anchor}` : `${t("next30Days")}`;
 
   return (
     <div className="mx-auto max-w-5xl space-y-4">
@@ -127,12 +127,12 @@ export default function CalendarPage() {
           </select>
           {view !== "agenda" && (
             <>
-              <button className="btn-secondary" onClick={() => shift(-1)}>{t("more")}←</button>
+              <button className="btn-secondary" onClick={() => shift(-1)}>{t("prev")}</button>
               <button className="btn-secondary" onClick={() => setAnchor(todayStr())}>{t("today")}</button>
-              <button className="btn-secondary" onClick={() => shift(1)}>{t("more")}→</button>
+              <button className="btn-secondary" onClick={() => shift(1)}>{t("next")}</button>
             </>
           )}
-          <button className="btn" onClick={() => openCreate(todayStr())}>{t("add")} Event</button>
+          <button className="btn" onClick={() => openCreate(todayStr())}>{t("add")} {t("event")}</button>
         </div>
       </div>
 
@@ -144,7 +144,7 @@ export default function CalendarPage() {
         <Modal onClose={() => setShowForm(false)}>
           <form onSubmit={save} className="space-y-3">
             <h2 className="text-lg font-semibold">{editing ? t("editEvent") : t("newEvent")}</h2>
-            <input className="input" placeholder="Title" required value={form.title}
+            <input className="input" placeholder={t("title")} required value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })} />
             <div className="grid grid-cols-3 gap-2">
               <div>
@@ -170,7 +170,7 @@ export default function CalendarPage() {
             <div>
               <label className="label">{t("category")}</label>
               <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                {CATEGORIES.map((c) => <option key={c} value={c}>{t(`cat${c[0].toUpperCase()}${c.slice(1)}` as TranslationKey)}</option>)}
               </select>
             </div>
             <div className="flex gap-2 pt-2">
@@ -197,6 +197,7 @@ function EventPill({ e, onClick }: { e: Event; onClick: () => void }) {
 }
 
 function MonthGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string; byDay: ByDay; onDayClick: DayClick; onEventClick: EventClick }) {
+  const { t } = useTranslations();
   const first = weekStart(monthStart(anchor));
   const [y, m] = [+anchor.slice(0, 4), +anchor.slice(5, 7)];
   const today = todayStr();
@@ -205,7 +206,7 @@ function MonthGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string
   return (
     <div>
       <div className="grid grid-cols-7 gap-px pb-1 text-center text-xs font-medium text-zinc-500">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <div key={d}>{t(d)}</div>)}
+        {(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const).map((d) => <div key={d}>{t(d)}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg bg-neon/10">
         {weeks.flat().map((date) => {
@@ -218,7 +219,7 @@ function MonthGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string
                 {+date.slice(8, 10)}
               </div>
               {dayEvents.slice(0, 3).map((e) => <EventPill key={e.id} e={e} onClick={() => onEventClick(e)} />)}
-              {dayEvents.length > 3 && <div className="px-1 text-[10px] text-zinc-500">+{dayEvents.length - 3} more</div>}
+              {dayEvents.length > 3 && <div className="px-1 text-[10px] text-zinc-500">{t("moreEvents", { n: dayEvents.length - 3 })}</div>}
             </div>
           );
         })}
@@ -228,6 +229,7 @@ function MonthGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string
 }
 
 function WeekGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string; byDay: ByDay; onDayClick: DayClick; onEventClick: EventClick }) {
+  const { t } = useTranslations();
   const first = weekStart(anchor);
   const today = todayStr();
   const days = Array.from({ length: 7 }, (_, i) => addDays(first, i));
@@ -237,7 +239,7 @@ function WeekGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string;
       {days.map((date) => (
         <div key={date} onClick={() => onDayClick(date)}
           className={`min-h-40 cursor-pointer rounded-lg border p-2 hover:bg-neon/5 ${date === today ? "border-neon" : "border-line"} bg-zinc-900`}>
-          <div className="mb-2 text-xs text-zinc-400">{date.slice(8, 10)} {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => <span key={d}>{t(d)}</span>)[mondayIndex(date)]}</div>
+          <div className="mb-2 text-xs text-zinc-400">{date.slice(8, 10)} {(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const).map((d) => <span key={d}>{t(d)}</span>)[mondayIndex(date)]}</div>
           {(byDay.get(date) ?? []).map((e) => <EventPill key={e.id} e={e} onClick={() => onEventClick(e)} />)}
         </div>
       ))}
@@ -246,6 +248,7 @@ function WeekGrid({ anchor, byDay, onDayClick, onEventClick }: { anchor: string;
 }
 
 function Agenda({ byDay, range, onEventClick }: { byDay: ByDay; range: [string, string]; onEventClick: EventClick }) {
+  const { t, lang } = useTranslations();
   const days = Array.from({ length: 30 }, (_, i) => addDays(range[0], i)).filter((d) => (byDay.get(d) ?? []).length > 0);
   const [weather, setWeather] = useState<Record<string, any>>({});
 
@@ -281,8 +284,8 @@ function Agenda({ byDay, range, onEventClick }: { byDay: ByDay; range: [string, 
                     </span>
                     {w?.available && (
                       <span className="shrink-0 rounded-lg bg-neon/10 px-2 py-1 text-right text-xs text-zinc-300">
-                        {Math.round(w.temp)}°C · {w.precipProb ?? "?"}% rain
-                        <span className="block text-[10px] text-zinc-500">{wmoLabel(w.code)}</span>
+                        {Math.round(w.temp)}°C · {t("percentRain", { n: w.precipProb ?? "?" })}
+                        <span className="block text-[10px] text-zinc-500">{wmoLabel(w.code, lang)}</span>
                       </span>
                     )}
                   </button>

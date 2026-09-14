@@ -13,9 +13,11 @@ export async function POST(req: NextRequest) {
     );
   }
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const { message } = body;
+    const lang = body.lang === "es" ? ("es" as const) : ("en" as const);
     if (!message?.trim()) return badRequest("Message is required");
-    const reply = await runAssistant(user.id, message.trim(), user);
+    const reply = await runAssistant(user.id, message.trim(), user, lang);
     return NextResponse.json({ reply });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

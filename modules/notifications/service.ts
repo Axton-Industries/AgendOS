@@ -46,13 +46,17 @@ export interface Notification {
 }
 
 /** Notifications = today's calendar events + due/overdue reminders. Derived, nothing stored. */
-export function getNotifications(userId: string): Notification[] {
+export function getNotifications(userId: string, lang: "en" | "es" = "en"): Notification[] {
   const today = todayStr();
   const notifications: Notification[] = [];
 
   const todayEvents = listEvents(userId, `${today} 00:00`, `${addDays(today, 1)} 00:00`);
   for (const e of todayEvents) {
-    notifications.push({ kind: "event", text: `${timeOf(e.start)} · ${e.title}`, detail: e.location || "Event today" });
+    if (e.location) {
+      notifications.push({ kind: "event", text: `${timeOf(e.start)} · ${e.title}`, detail: e.location });
+    } else {
+      notifications.push({ kind: "event", text: `${timeOf(e.start)} · ${e.title}`, detail: lang === "es" ? "Evento hoy" : "Event today" });
+    }
   }
 
   const reminders = listReminders(userId);
@@ -61,7 +65,9 @@ export function getNotifications(userId: string): Notification[] {
       notifications.push({
         kind: "reminder",
         text: r.text,
-        detail: r.due < today ? `Overdue — was due ${r.due}` : "Due today",
+        detail: r.due < today
+          ? lang === "es" ? `Atrasado — debía hacerse el ${r.due}` : `Overdue — was due ${r.due}`
+          : lang === "es" ? "Vence hoy" : "Due today",
       });
     }
   }

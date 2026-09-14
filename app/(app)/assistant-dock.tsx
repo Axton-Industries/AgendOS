@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LangToggle } from "@/i18n";
+import { useTranslations } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -13,6 +13,7 @@ declare global {
 }
 
 export default function AssistantDock() {
+  const { t, lang } = useTranslations();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -49,7 +50,7 @@ export default function AssistantDock() {
     fetch("/api/ai/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, lang }),
     })
       .then(async (res) => {
         const d = await res.json();
@@ -116,7 +117,7 @@ export default function AssistantDock() {
               </svg>
               {t("assistantTitle")}
             </span>
-            {listening && <span className="animate-pulse text-[11px] text-neon">● listening</span>}
+            {listening && <span className="animate-pulse text-[11px] text-neon">{t("listening")}</span>}
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
@@ -132,7 +133,7 @@ export default function AssistantDock() {
                 {m.content}
               </div>
             ))}
-            {busy && <div className="w-24 rounded-xl border border-line bg-panel px-3 py-2 text-[13px] text-ink-faint">thinking…</div>}
+            {busy && <div className="w-24 rounded-xl border border-line bg-panel px-3 py-2 text-[13px] text-ink-faint">{t("thinking")}</div>}
             {error && <div className="text-xs text-red-400">{error}</div>}
             <div ref={bottom} />
           </div>
@@ -143,7 +144,7 @@ export default function AssistantDock() {
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded border ${
                   listening ? "border-neon bg-neon text-white" : "border-line-strong bg-panel text-ink-muted hover:text-neon"
                 }`}
-                aria-label="Speak instead of typing">
+                aria-label={t("speakInstead")}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <rect x="9" y="2.5" width="6" height="11" rx="2.5" />
                   <path d="M5 11a7 7 0 0 0 14 0M12 18v3.5" />
@@ -152,7 +153,7 @@ export default function AssistantDock() {
             )}
             <input className="input flex-1" placeholder={t("askAnything")} value={input}
               onChange={(e) => setInput(e.target.value)} disabled={busy} />
-            <button className="btn h-9 px-3" disabled={busy || !input.trim()}>Send</button>
+            <button className="btn h-9 px-3" disabled={busy || !input.trim()}>{t("send")}</button>
           </form>
         </div>
       )}

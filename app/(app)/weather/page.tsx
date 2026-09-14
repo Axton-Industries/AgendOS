@@ -12,7 +12,7 @@ type Forecast = {
 };
 
 export default function WeatherPage() {
-  const { t } = useTranslations();
+  const { t, lang } = useTranslations();
   const [data, setData] = useState<Forecast | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -70,7 +70,7 @@ export default function WeatherPage() {
             <p className="text-sm text-zinc-400">{data.place}</p>
             <div className="mt-2 flex flex-wrap items-baseline gap-4">
               <span className="text-5xl font-bold tracking-tight">{Math.round(data.current.temp)}°C</span>
-              <span className="text-lg text-zinc-300">{wmoLabel(data.current.code)}</span>
+              <span className="text-lg text-zinc-300">{wmoLabel(data.current.code, lang)}</span>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-zinc-400 sm:grid-cols-4">
               <div>{t("feelsLike")} <b className="text-zinc-200">{Math.round(data.current.feelsLike)}°C</b></div>
@@ -99,7 +99,7 @@ export default function WeatherPage() {
               {data.daily.map((d) => (
                 <li key={d.date} className="flex items-center gap-3 py-2 text-sm">
                   <span className="w-10 text-zinc-400">{d.date.slice(5)}</span>
-                  <span className="flex-1 text-zinc-300">{wmoLabel(d.code)}</span>
+                  <span className="flex-1 text-zinc-300">{wmoLabel(d.code, lang)}</span>
                   <span className="text-neon/70">{d.precipProb != null ? `${d.precipProb}%` : ""}</span>
                   <span className="w-16 text-right"><b>{Math.round(d.max)}°</b> <span className="text-zinc-500">{Math.round(d.min)}°</span></span>
                 </li>

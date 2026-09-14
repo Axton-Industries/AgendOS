@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "@/lib/i18n";
 
 type Note = { id: string; title: string; content: string; updated_at: string };
 
 export default function NotesPage() {
+  const { t } = useTranslations();
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<{ id: string | null; title: string; content: string } | null>(null);
@@ -30,7 +32,7 @@ export default function NotesPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this note?")) return;
+    if (!confirm(t("deleteNote"))) return;
     await fetch(`/api/notes/${id}`, { method: "DELETE" });
     load(query);
   }
@@ -38,16 +40,16 @@ export default function NotesPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="page-title">Notes</h1>
+        <h1 className="page-title">{t("notesPageTitle")}</h1>
         <form className="ml-auto flex gap-2" onSubmit={(e) => { e.preventDefault(); load(query); }}>
-          <input className="input w-48" placeholder="Search notes…" value={query}
+          <input className="input w-48" placeholder={t("searchNotes")} value={query}
             onChange={(e) => setQuery(e.target.value)} />
-          <button className="btn-secondary">Search</button>
+          <button className="btn-secondary">{t("search")}</button>
         </form>
-        <button className="btn" onClick={() => setEditing({ id: null, title: "", content: "" })}>+ Note</button>
+        <button className="btn" onClick={() => setEditing({ id: null, title: "", content: "" })}>{t("addNote")}</button>
       </div>
 
-      {notes.length === 0 && <p className="card text-sm text-zinc-500">No notes{query ? " matching your search" : " yet"}.</p>}
+      {notes.length === 0 && <p className="card text-sm text-zinc-500">{query ? t("noNotes") + t("matchingSearch") + "." : t("noNotes") + t("yet") + "."}</p>}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {notes.map((n) => (
@@ -56,8 +58,8 @@ export default function NotesPage() {
             <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-400">{n.content}</p>
             <div className="mt-3 flex items-center gap-3 text-xs text-zinc-600">
               <span>{n.updated_at.slice(0, 10)}</span>
-              <button className="hover:text-ink" onClick={() => setEditing({ id: n.id, title: n.title, content: n.content })}>Edit</button>
-              <button className="hover:text-red-400" onClick={() => remove(n.id)}>Delete</button>
+              <button className="hover:text-ink" onClick={() => setEditing({ id: n.id, title: n.title, content: n.content })}>{t("edit")}</button>
+              <button className="hover:text-red-400" onClick={() => remove(n.id)}>{t("delete")}</button>
             </div>
           </div>
         ))}
@@ -66,12 +68,12 @@ export default function NotesPage() {
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setEditing(null)}>
           <form className="card w-full max-w-md space-y-3" onClick={(e) => e.stopPropagation()} onSubmit={save}>
-            <h2 className="text-lg font-semibold">{editing.id ? "Edit note" : "New note"}</h2>
-            <input className="input" placeholder="Title" required value={editing.title}
+            <h2 className="text-lg font-semibold">{editing.id ? t("editNote") : t("newNote")}</h2>
+            <input className="input" placeholder={t("title")} required value={editing.title}
               onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
-            <textarea className="input" rows={8} placeholder="Write something…" value={editing.content}
+            <textarea className="input" rows={8} placeholder={t("writeSomething")} value={editing.content}
               onChange={(e) => setEditing({ ...editing, content: e.target.value })} />
-            <button className="btn">Save</button>
+            <button className="btn">{t("saveNote")}</button>
           </form>
         </div>
       )}

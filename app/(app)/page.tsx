@@ -4,24 +4,26 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { wmoLabel } from "@/modules/weather/service";
 import { useTranslations } from "@/lib/i18n";
+import { fmtCents } from "@/lib/format";
+import type { BriefData } from "@/modules/brief/service";
 
 export default function BriefPage() {
-  const { t } = useTranslations();
-  const [data, setData] = useState(null);
+  const { t, lang } = useTranslations();
+  const [data, setData] = useState<(BriefData & { summary: string }) | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/brief")
+    fetch(`/api/brief?lang=${lang}`)
       .then((r) => r.json())
       .then((d) => setData(d))
       .catch((e) => setError(e.message));
-  }, []);
+  }, [lang]);
 
-  if (!data) return <p className="text-sm text-zinc-500">Loading…</p>;
+  if (!data) return <p className="text-sm text-zinc-500">{t("loading")}</p>;
   if (error) return <p className="text-sm text-red-400">{error}</p>;
 
   const weather = data.weather;
-  const today = data.daily?.[0];
+  const today = data.weather?.daily?.[0] ?? null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -41,15 +43,15 @@ export default function BriefPage() {
             <>
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-bold">{Math.round(weather.current.temp)}°C</span>
-                <span className="text-zinc-400">{wmoLabel(weather.current.code)}</span>
+                <span className="text-zinc-400">{wmoLabel(weather.current.code, lang)}</span>
               </div>
               <p className="mt-1 text-sm text-zinc-400">
-                Feels like {Math.round(weather.current.feelsLike)}°C
-                {today?.precipProb != null && <> · {today.precipProb}% chance of rain</>}
+                {t("feelsLike")} {Math.round(weather.current.feelsLike)}°C
+                {today?.precipProb != null && <> · {today.precipProb}% {t("chanceOfRain")}</>}
               </p>
             </>
           ) : (
-            <p className="text-sm text-zinc-500">Weather unavailable</p>
+            <p className="text-sm text-zinc-500">{t("weatherUnavailable")}</p>
           )}
         </section>
 
@@ -58,7 +60,7 @@ export default function BriefPage() {
           <div className="text-3xl font-bold tracking-tight">{data.finance ? fmtCents(data.finance.balanceCents) : "…"}</div>
           <p className="mt-1 text-sm text-zinc-400">
             <span className="text-emerald-400">+{data.finance ? fmtCents(data.finance.monthIncomeCents) : "0"}</span> ·{" "}
-            <span className="text-red-400">-{data.finance ? fmtCents(data.finance.monthExpensesCents) : "0"}</span> this month
+            <span className="text-red-400">-{data.finance ? fmtCents(data.finance.monthExpensesCents) : "0"}</span> {t("thisMonth")}
           </p>
         </section>
       </div>
@@ -66,7 +68,7 @@ export default function BriefPage() {
       <section className="card">
         <h2 className="mb-3 section-title">{t("today")}</h2>
         {data.todayEvents.length === 0 ? (
-          <p className="text-sm text-zinc-500">No events today.</p>
+          <p className="text-sm text-zinc-500">{t("noEventsToday")}</p>
         ) : (
           <ul className="space-y-2">
             {data.todayEvents.map((e) => (

@@ -32,8 +32,22 @@ export const WMO_LABELS: Record<number, string> = {
   95: "Thunderstorm", 96: "Thunderstorm with hail", 99: "Heavy thunderstorm with hail",
 };
 
-export function wmoLabel(code: number) {
-  return WMO_LABELS[code] ?? "Unknown";
+export const WMO_LABELS_ES: Record<number, string> = {
+  0: "Cielo despejado", 1: "Mayormente despejado", 2: "Parcialmente nublado", 3: "Nublado",
+  45: "Niebla", 48: "Niebla engelante",
+  51: "Llovizna ligera", 53: "Llovizna", 55: "Llovizna densa",
+  56: "Llovizna congelante ligera", 57: "Llovizna congelante",
+  61: "Lluvia ligera", 63: "Lluvia", 65: "Lluvia fuerte",
+  66: "Lluvia congelante ligera", 67: "Lluvia congelante",
+  71: "Nieve ligera", 73: "Nieve", 75: "Nieve fuerte", 77: "Granos de nieve",
+  80: "Chubascos ligeros", 81: "Chubascos", 82: "Chubascos violentos",
+  85: "Chubascos de nieve", 86: "Chubascos de nieve fuertes",
+  95: "Tormenta", 96: "Tormenta con granizo", 99: "Tormenta fuerte con granizo",
+};
+
+export function wmoLabel(code: number, lang?: "en" | "es") {
+  const labels = lang === "es" ? WMO_LABELS_ES : WMO_LABELS;
+  return labels[code] ?? (lang === "es" ? "Desconocido" : "Unknown");
 }
 
 export interface GeoPlace {

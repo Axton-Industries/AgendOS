@@ -4,9 +4,10 @@ import { createReminder, getNotifications, listReminders } from "@/modules/notif
 
 export async function GET(req: NextRequest) {
   const user = requireUser();
+  const lang = (new URL(req.url).searchParams.get("lang") === "es" ? "es" : "en") as "en" | "es";
   return NextResponse.json({
     reminders: listReminders(user.id, true),
-    notifications: getNotifications(user.id),
+    notifications: getNotifications(user.id, lang),
   });
 }
 

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "@/lib/i18n";
 
 type Place = { id: string; name: string; lat: number; lon: number };
 type RouteInfo = { distanceKm: number; durationMin: number; mode: string; mapUrl: string };
 
 export default function MapsPage() {
+  const { t } = useTranslations();
   const [places, setPlaces] = useState<Place[]>([]);
   const [selected, setSelected] = useState<Place | null>(null);
   const [query, setQuery] = useState("");
@@ -56,14 +58,14 @@ export default function MapsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <h1 className="page-title">Maps</h1>
+      <h1 className="page-title">{t("mapsPageTitle")}</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="card">
-          <h2 className="mb-3 section-title">Saved places</h2>
+          <h2 className="mb-3 section-title">{t("savedPlaces")}</h2>
           <form onSubmit={savePlace} className="mb-3 flex gap-2">
-            <input className="input" placeholder="Search a place to save…" value={query} onChange={(e) => setQuery(e.target.value)} />
-            <button className="btn-secondary" disabled={busy}>Save</button>
+            <input className="input" placeholder={t("searchPlaceToSave")} value={query} onChange={(e) => setQuery(e.target.value)} />
+            <button className="btn-secondary" disabled={busy}>{t("save")}</button>
           </form>
           <ul className="divide-y divide-zinc-800 text-sm">
             {places.map((p) => (
@@ -74,26 +76,26 @@ export default function MapsPage() {
                 <button className="text-zinc-600 opacity-0 hover:text-red-400 group-hover:opacity-100" onClick={() => removePlace(p.id)}>×</button>
               </li>
             ))}
-            {places.length === 0 && <li className="py-2 text-zinc-500">No saved places yet.</li>}
+            {places.length === 0 && <li className="py-2 text-zinc-500">{t("noSavedPlaces")}</li>}
           </ul>
         </section>
 
         <section className="card">
-          <h2 className="mb-3 section-title">Directions</h2>
+          <h2 className="mb-3 section-title">{t("directions")}</h2>
           <form onSubmit={calcRoute} className="space-y-3">
-            <input className="input" placeholder="From (e.g. Valladolid)" required value={routeForm.from} onChange={(e) => setRouteForm({ ...routeForm, from: e.target.value })} />
-            <input className="input" placeholder="To (e.g. Salamanca)" required value={routeForm.to} onChange={(e) => setRouteForm({ ...routeForm, to: e.target.value })} />
+            <input className="input" placeholder={t("from")} required value={routeForm.from} onChange={(e) => setRouteForm({ ...routeForm, from: e.target.value })} />
+            <input className="input" placeholder={t("to")} required value={routeForm.to} onChange={(e) => setRouteForm({ ...routeForm, to: e.target.value })} />
             <select className="input" value={routeForm.mode} onChange={(e) => setRouteForm({ ...routeForm, mode: e.target.value })}>
-              <option value="car">Car</option>
-              <option value="bike">Bike</option>
-              <option value="foot">On foot</option>
+              <option value="car">{t("car")}</option>
+              <option value="bike">{t("bike")}</option>
+              <option value="foot">{t("onFoot")}</option>
             </select>
-            <button className="btn" disabled={busy}>Get route</button>
+            <button className="btn" disabled={busy}>{t("getRoute")}</button>
           </form>
           {route && (
             <div className="mt-4 rounded-lg bg-neon/10 p-3 text-sm">
-              <p className="font-semibold">{route.distanceKm} km · {route.durationMin} min by {route.mode}</p>
-              <a className="text-xs text-neon hover:underline" href={route.mapUrl} target="_blank" rel="noreferrer">Open directions on OpenStreetMap →</a>
+              <p className="font-semibold">{t("routeInfo", { km: route.distanceKm, min: route.durationMin, mode: t(route.mode === "foot" ? "onFoot" : route.mode === "bike" ? "bike" : "car") })}</p>
+              <a className="text-xs text-neon hover:underline" href={route.mapUrl} target="_blank" rel="noreferrer">{t("openDirections")}</a>
             </div>
           )}
         </section>
@@ -108,7 +110,7 @@ export default function MapsPage() {
             src={`https://www.openstreetmap.org/export/embed.html?bbox=${selected.lon - 0.05}%2C${selected.lat - 0.05}%2C${selected.lon + 0.05}%2C${selected.lat + 0.05}&layer=mapnik&marker=${selected.lat}%2C${selected.lon}`} />
         </section>
       ) : (
-        <p className="card text-sm text-zinc-500">Select a saved place to view it on the map.</p>
+        <p className="card text-sm text-zinc-500">{t("selectPlaceHint")}</p>
       )}
     </div>
   );

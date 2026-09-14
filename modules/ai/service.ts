@@ -83,23 +83,24 @@ function providerError(status: number, body: string) {
 
 const MAX_TOOL_ROUNDS = 6;
 
-function systemPrompt(user: User) {
+function systemPrompt(user: User, lang: "en" | "es" = "en") {
   const location = user.location_name ? `${user.location_name} (user's saved location)` : "unknown (ask or default to their city)";
+  const langRule = lang === "es" ? "\n\nAlways reply in Spanish." : "\n\nAlways reply in English.";
   return `You are the AgendOS assistant. You help the user with their calendar, weather and personal finances using the provided tools. Always use tools to read or change real data — never invent events or transactions. When asked about anything not in the user's own data, search the internet with web_search (and web_read to dig into a page) before answering.
 
-Today is ${friendlyDate(nowDateTimeStr().slice(0, 10))}. Current time: ${nowDateTimeStr()}.
+Today is ${friendlyDate(nowDateTimeStr().slice(0, 10), lang)}. Current time: ${nowDateTimeStr()}.
 User location: ${location}.
 
-Event datetimes use the format 'YYYY-MM-DD HH:mm' (24-hour). Amounts are in euros (EUR). When creating or updating events, resolve relative dates like "tomorrow" to real dates yourself. Answer concisely.`;
+Event datetimes use the format 'YYYY-MM-DD HH:mm' (24-hour). Amounts are in euros (EUR). When creating or updating events, resolve relative dates like "tomorrow" to real dates yourself. Answer concisely.${langRule}`;
 }
 
-export async function runAssistant(userId: string, userMessage: string, user: User): Promise<string> {
+export async function runAssistant(userId: string, userMessage: string, user: User, lang: "en" | "es" = "en"): Promise<string> {
   const history = db
     .prepare("SELECT role, content FROM ai_messages WHERE user_id = ? ORDER BY created_at DESC LIMIT 20")
     .all(userId) as any[];
 
   const messages: AIMessage[] = [
-    { role: "system", content: systemPrompt(user) },
+    { role: "system", content: systemPrompt(user, lang) },
     ...history.reverse().map((m) => ({ role: m.role, content: m.content }) as AIMessage),
     { role: "user", content: userMessage },
   ];
@@ -129,7 +130,7 @@ export async function runAssistant(userId: string, userMessage: string, user: Us
     }
   }
 
-  if (!reply) reply = "I couldn't complete that request.";
+  if (!reply) reply = lang === "es" ? "No pude completar esa solicitud." : "I couldn't complete that request.";
   saveMessage(userId, "assistant", reply);
   return reply;
 }

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "@/lib/i18n";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 export default function AssistantPage() {
-  const { t } = useTranslations();
+  const { t, lang } = useTranslations();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -33,7 +34,7 @@ export default function AssistantPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, lang }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
@@ -69,7 +70,7 @@ export default function AssistantPage() {
             {m.content}
           </div>
         ))}
-        {busy && <div className="w-24 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm text-ink-faint">thinking…</div>}
+        {busy && <div className="w-24 rounded-xl bg-zinc-900 px-4 py-2.5 text-sm text-ink-faint">{t("thinking")}</div>}
         {error && <div className="card text-sm text-red-400">{error}</div>}
         <div ref={bottom} />
       </div>
